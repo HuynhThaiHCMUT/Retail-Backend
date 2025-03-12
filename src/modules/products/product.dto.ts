@@ -15,6 +15,10 @@ export class CreateProductDto {
     @IsOptional()
     description?: string
 
+    @ApiPropertyOptional()
+    @IsOptional()
+    categories?: string[]
+
     @ApiProperty()
     @IsInt()
     price: number
@@ -52,6 +56,10 @@ export class UpdateProductDto {
     @ApiPropertyOptional()
     @IsOptional()
     description?: string
+
+    @ApiPropertyOptional()
+    @IsOptional()
+    categories?: string[]
 
     @ApiPropertyOptional()
     @IsOptional()

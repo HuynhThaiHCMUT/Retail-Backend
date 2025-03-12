@@ -1,4 +1,5 @@
-import { Column, CreateDateColumn, Entity, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
+import { Column, CreateDateColumn, Entity, JoinTable, ManyToMany, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
+import { Category } from "../categories/category.entity";
 
 @Entity()
 export class Product {
@@ -28,5 +29,9 @@ export class Product {
     createdAt: Date
     @UpdateDateColumn()
     updatedAt: Date
+    @ManyToMany(() => Category, category => category.products)
+    @JoinTable()
+    categories?: Category[];
+    
     pictures?: string[];
 }

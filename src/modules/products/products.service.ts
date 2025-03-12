@@ -5,6 +5,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { And, FindOptionsWhere, LessThanOrEqual, Like, MoreThanOrEqual, Or, Repository } from 'typeorm';
 import { CreateProductDto, ProductDto, UpdateProductDto } from './product.dto';
 import { Product } from './product.entity';
+import { CategoriesService } from '../categories/categories.service';
 
 @Injectable()
 export class ProductsService {
@@ -14,32 +15,51 @@ export class ProductsService {
     constructor(
         @InjectRepository(Product)
         private productsRepository: Repository<Product>,
+        private categoriesService: CategoriesService,
     ) {}
 
-    async findOne(findOptions: FindOptionsWhere<Product>): Promise<Product> {
+    async findOne(findOptions: FindOptionsWhere<Product>): Promise<ProductDto> {
         let product = await this.productsRepository.findOne({
             where: {...findOptions, deleted: false},
+            relations: ['categories'],
         });
         if (product) {
             product.pictures = await this.getPicturesById(product.id);
         }
-        return product;
+        return {...product, categories: product.categories?.map((category) => category.name)};
     }
 
-    async create(product: CreateProductDto): Promise<Product> {
-        let createdProduct = this.productsRepository.create(product);
-        return await this.productsRepository.save(createdProduct);
+    async create(product: CreateProductDto): Promise<ProductDto> {
+        let categories = await this.categoriesService.createFromArray(product.categories);
+        let createdProduct = this.productsRepository.create({...product, categories});
+        createdProduct = await this.productsRepository.save(createdProduct);
+        return {...createdProduct, categories: product.categories};
     }
 
-    async update(id: string, product: UpdateProductDto): Promise<void> {
-        let updateResult = await this.productsRepository.update(id, product);
-        if (updateResult.affected == 0) throw new NotFoundException();
+    async update(id: string, data: UpdateProductDto): Promise<void> {
+        let categories = await this.categoriesService.createFromArray(data.categories);
+        let product = await this.productsRepository.findOne({
+            where: {id, deleted: false},
+            relations: ['categories'],
+        });
+        if (!product) throw new NotFoundException();
+        Object.assign(product, data);
+        product.categories = categories;
+        await this.productsRepository.save(product);
+        this.categoriesService.deleteUnused();
         return;
     }
 
     async delete(id: string): Promise<void> {
-        let deleteResult = await this.productsRepository.update(id, { deleted: true });
-        if (deleteResult.affected == 0) throw new NotFoundException();
+        let product = await this.productsRepository.findOne({
+            where: {id, deleted: false},
+            relations: ['categories'],
+        });
+        if (!product) throw new NotFoundException();
+        product.deleted = true;
+        product.categories = [];
+        await this.productsRepository.save(product);
+        this.categoriesService.deleteUnused();
         return;
     }
 
@@ -81,11 +101,15 @@ export class ProductsService {
             take: limit,
             order,
             where,
+            relations: ['categories'],
         });
+        let productsDto = [];
         for (let product of products) {
             product.pictures = await this.getPicturesById(product.id);
+            let categories = product.categories.map((category) => category.name);
+            productsDto.push({...product, categories});
         }
-        return products;
+        return productsDto;
     }
 
     async getPicturesById(id: string): Promise<string[]> {

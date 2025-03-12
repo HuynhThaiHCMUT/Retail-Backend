@@ -5,7 +5,7 @@ import { Cron } from '@nestjs/schedule';
 export class AppService {
     private readonly logger = new Logger(AppService.name);
     
-    @Cron('*/5 * * * *') // Every 5 minutes
+    //@Cron('*/5 * * * *') // Every 5 minutes
     async callDummyApi() {
         const url = 'https://accomodation-seeking-backend.onrender.com/scheduler';
         this.logger.log('Scheduler is running');
