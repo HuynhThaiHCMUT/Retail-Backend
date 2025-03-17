@@ -1,10 +1,7 @@
-import { Column, CreateDateColumn, Entity, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm"
-
-export enum Role {
-    MANAGER = "MANAGER",
-    EMPLOYEE = "EMPLOYEE",
-    CUSTOMER = "CUSTOMER"
-}
+import { Column, CreateDateColumn, DeleteDateColumn, Entity, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm"
+import { Order } from "../orders/order.entity"
+import { Role } from "src/utils/enum"
+import { AuditLog } from "../audit-logs/audit-log.entity"
 
 @Entity()
 export class User {
@@ -12,8 +9,6 @@ export class User {
     id: string
     @Column()
     name: string
-    @Column({default: false})
-    deleted: boolean
     @Column({nullable: true})
     email: string
     @Column({length: 15, unique: true})
@@ -28,4 +23,16 @@ export class User {
     createdAt: Date
     @UpdateDateColumn()
     updatedAt: Date
+    @DeleteDateColumn()
+    deletedAt: Date
+    @OneToMany(() => Order, order => order.customer)
+    customerOrders: Order[]
+    @OneToMany(() => Order, order => order.staff)
+    staffOrders: Order[]
+    @OneToMany(() => AuditLog, auditLog => auditLog.changedBy)
+    auditLogs: AuditLog[]
+
+    toDto() {
+        return {...this, password: undefined}
+    }
 }

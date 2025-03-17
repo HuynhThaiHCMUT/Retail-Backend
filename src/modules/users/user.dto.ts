@@ -1,7 +1,6 @@
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger"
 import { IsEmail, IsEnum, IsMobilePhone, IsNotEmpty, IsOptional } from "class-validator"
-import { Role } from "./user.entity"
-
+import { Role } from "src/utils/enum";
 
 export class FileUploadDto {
     @ApiProperty({ type: 'string', format: 'binary' })
@@ -27,7 +26,7 @@ export class CreateUserDto {
     @IsMobilePhone()
     phone: string
 
-    @ApiPropertyOptional()
+    @ApiPropertyOptional({enum: Role})
     @IsOptional()
     @IsEnum(Role)
     role?: string
@@ -52,7 +51,7 @@ export class UpdateUserDto {
     @IsMobilePhone()
     phone?: string
 
-    @ApiPropertyOptional()
+    @ApiPropertyOptional({enum: Role})
     @IsOptional()
     @IsEnum(Role)
     role?: string

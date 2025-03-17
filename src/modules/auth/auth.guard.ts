@@ -11,7 +11,8 @@ import { ConfigService } from '@nestjs/config';
 import { Reflector } from '@nestjs/core';
 import { JwtService } from '@nestjs/jwt';
 import { Request } from 'express';
-import { Role } from '../users/user.entity';
+import { Role } from 'src/utils/enum';
+import { RequestContext } from 'src/utils/request-context';
 
 export const IS_PUBLIC_KEY = 'isPublic';
 export const IS_ADMIN_KEY = 'isAdmin';
@@ -27,7 +28,8 @@ export class AuthGuard implements CanActivate {
     constructor(
         private jwtService: JwtService,
         private configService: ConfigService,
-        private reflector: Reflector
+        private reflector: Reflector,
+        private readonly requestContext: RequestContext,
     ) { }
 
     async canActivate(context: ExecutionContext): Promise<boolean> {
@@ -36,7 +38,10 @@ export class AuthGuard implements CanActivate {
             context.getClass(),
         ]);
 
-        if (isPublic) return true;
+        if (isPublic) {
+            this.requestContext.run(() => { }, { userId: null });
+            return true;
+        }
 
         const request = context.switchToHttp().getRequest<Request>();
         const token = this.extractTokenFromHeader(request);
@@ -49,6 +54,7 @@ export class AuthGuard implements CanActivate {
                 }
             );
             request['user'] = payload;
+            this.requestContext.run(() => { }, { userId: payload.id });
         } catch {
             throw new UnauthorizedException('Unauthorized');
         }

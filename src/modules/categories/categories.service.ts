@@ -22,8 +22,7 @@ export class CategoriesService {
     }
 
     async create(data: CategoryDto) {
-        let category = this.categoriesRepository.create(data);
-        return this.categoriesRepository.save(category);
+        return this.categoriesRepository.save(data);
     }
 
     async createFromArray(data: string[] | undefined) {

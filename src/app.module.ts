@@ -10,6 +10,12 @@ import { ProductsModule } from './modules/products/products.module';
 import { ScheduleModule } from '@nestjs/schedule';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { CategoriesModule } from './modules/categories/categories.module';
+import { OrdersModule } from './modules/orders/orders.module';
+import { AuditSubscriber } from './modules/audit-logs/audit.subscriber';
+import { RequestContext } from './utils/request-context';
+import { AuditLogsService } from './modules/audit-logs/audit-logs.service';
+import { AuditLogsController } from './modules/audit-logs/audit-logs.controller';
+import { AuditLogsModule } from './modules/audit-logs/audit-logs.module';
 
 @Module({
   imports: [
@@ -40,8 +46,10 @@ import { CategoriesModule } from './modules/categories/categories.module';
     UsersModule, 
     ProductsModule,
     CategoriesModule,
+    OrdersModule,
+    AuditLogsModule,
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [AppService, RequestContext, AuditSubscriber],
 })
 export class AppModule { }

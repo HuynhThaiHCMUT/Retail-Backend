@@ -7,8 +7,8 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
   const config = new DocumentBuilder()
-    .setTitle('Accomodation Seeking API')
-    .setDescription('Accomodation Seeking API documentation')
+    .setTitle('Retail API')
+    .setDescription('Retail API documentation')
     .setVersion('1.0')
     .addTag('auth')
     .addBearerAuth({ type: 'http', scheme: 'bearer', bearerFormat: 'JWT' }, 'bearer')

@@ -43,14 +43,11 @@ export class ProductsController {
 
     @Public()
     @Get(':id')
-    @ApiParam({ name: 'id', type: String })
     @ApiOkResponse({ description: 'Get product successfully', type: ProductDto })
     @ApiUnauthorizedResponse({ description: 'Unauthorized'})
     @ApiNotFoundResponse({ description: 'Product not found'})
     async getProduct(@Param('id') id: string) {
-        const product = await this.productsService.findOne({id});
-        if (!product) throw new NotFoundException();
-        return product;
+        return await this.productsService.find(id);
     }
 
     @Post()
@@ -61,8 +58,7 @@ export class ProductsController {
     }
     
     @Put(':id')
-    @ApiParam({ name: 'id', type: String })
-    @ApiOkResponse({ description: 'Update product information successfully'})
+    @ApiOkResponse({ description: 'Update product information successfully', type: ProductDto})
     @ApiUnauthorizedResponse({ description: 'Unauthorized'})
     @ApiNotFoundResponse({ description: 'Product not found'})
     updateProduct(@Param('id') id: string, @Body() productDto: UpdateProductDto) {
@@ -70,7 +66,6 @@ export class ProductsController {
     }
     
     @Delete(':id')
-    @ApiParam({ name: 'id', type: String })
     @ApiOkResponse({ description: 'Delete product successfully'})
     @ApiUnauthorizedResponse({ description: 'Unauthorized'})
     @ApiNotFoundResponse({ description: 'Product not found'})
@@ -79,7 +74,6 @@ export class ProductsController {
     }
 
     @Post(':id/pictures')
-    @ApiParam({ name: 'id', type: String })
     @ApiBody({ description: 'Upload pictures', type: FilesUploadDto})
     @ApiOkResponse({ description: 'Upload pictures successfully', type: [String]})
     @ApiUnauthorizedResponse({ description: 'Unauthorized'})
@@ -104,8 +98,6 @@ export class ProductsController {
     }
 
     @Delete(':id/pictures/:filename')
-    @ApiParam({ name: 'id', type: String })
-    @ApiParam({ name: 'filename', type: String })
     @ApiOkResponse({ description: 'Delete picture successfully'})
     @ApiUnauthorizedResponse({ description: 'Unauthorized'})
     @ApiNotFoundResponse({ description: 'Picture not found'})

@@ -2,7 +2,7 @@ import { promises as fs } from 'fs';
 import * as path from 'path';
 import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { And, FindOptionsWhere, LessThanOrEqual, Like, MoreThanOrEqual, Or, Repository } from 'typeorm';
+import { And, FindOptionsWhere, LessThanOrEqual, Like, MoreThanOrEqual, Repository } from 'typeorm';
 import { CreateProductDto, ProductDto, UpdateProductDto } from './product.dto';
 import { Product } from './product.entity';
 import { CategoriesService } from '../categories/categories.service';
@@ -18,47 +18,48 @@ export class ProductsService {
         private categoriesService: CategoriesService,
     ) {}
 
-    async findOne(findOptions: FindOptionsWhere<Product>): Promise<ProductDto> {
+    async find(id: string): Promise<ProductDto> {
         let product = await this.productsRepository.findOne({
-            where: {...findOptions, deleted: false},
+            where: {id},
             relations: ['categories'],
         });
         if (product) {
             product.pictures = await this.getPicturesById(product.id);
+        } else {
+            throw new NotFoundException();
         }
-        return {...product, categories: product.categories?.map((category) => category.name)};
+        return product.toDto();
     }
 
     async create(product: CreateProductDto): Promise<ProductDto> {
         let categories = await this.categoriesService.createFromArray(product.categories);
-        let createdProduct = this.productsRepository.create({...product, categories});
-        createdProduct = await this.productsRepository.save(createdProduct);
-        return {...createdProduct, categories: product.categories};
+        let createdProduct = this.productsRepository.save({...product, categories});
+        return (await createdProduct).toDto();
     }
 
-    async update(id: string, data: UpdateProductDto): Promise<void> {
+    async update(id: string, data: UpdateProductDto): Promise<ProductDto> {
         let categories = await this.categoriesService.createFromArray(data.categories);
         let product = await this.productsRepository.findOne({
-            where: {id, deleted: false},
+            where: {id},
             relations: ['categories'],
         });
         if (!product) throw new NotFoundException();
         Object.assign(product, data);
         product.categories = categories;
-        await this.productsRepository.save(product);
+        product = await this.productsRepository.save(product);
         this.categoriesService.deleteUnused();
-        return;
+        return product.toDto();
     }
 
     async delete(id: string): Promise<void> {
         let product = await this.productsRepository.findOne({
-            where: {id, deleted: false},
+            where: {id},
             relations: ['categories'],
         });
         if (!product) throw new NotFoundException();
-        product.deleted = true;
         product.categories = [];
         await this.productsRepository.save(product);
+        await this.productsRepository.softDelete(id);
         this.categoriesService.deleteUnused();
         return;
     }
@@ -83,9 +84,7 @@ export class ProductsService {
                 order.createdAt = 'DESC';
                 break;
         }
-        let where: FindOptionsWhere<Product> = {
-            deleted: false,
-        };
+        let where: FindOptionsWhere<Product> = {};
         if (name) {
             where.name = Like(`%${name}%`);
         }
@@ -103,13 +102,10 @@ export class ProductsService {
             where,
             relations: ['categories'],
         });
-        let productsDto = [];
         for (let product of products) {
             product.pictures = await this.getPicturesById(product.id);
-            let categories = product.categories.map((category) => category.name);
-            productsDto.push({...product, categories});
         }
-        return productsDto;
+        return products.map((product) => product.toDto());
     }
 
     async getPicturesById(id: string): Promise<string[]> {
