@@ -1,30 +1,34 @@
-import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger'
 
 export class CreateOrderProductDto {
     @ApiProperty()
-    productId: string;
-    @ApiProperty()
-    quantity: number;
+    productId: string
     @ApiPropertyOptional()
-    price?: number;
+    unitName?: string
+    @ApiProperty()
+    quantity: number
+    @ApiPropertyOptional()
+    price?: number
 }
 
 export class OrderProductDto extends CreateOrderProductDto {
     @ApiProperty()
-    id: string;
+    id: string
     @ApiProperty()
-    price: number;
+    price: number
     @ApiProperty()
-    total: number;
+    total: number
 }
 
 export class UpdateOrderProductDto {
     @ApiProperty()
-    id: string;
+    id: string
     @ApiPropertyOptional()
-    productId?: string;
+    productId?: string
     @ApiPropertyOptional()
-    quantity?: number;
+    unitName?: string
     @ApiPropertyOptional()
-    price?: number;
+    quantity?: number
+    @ApiPropertyOptional()
+    price?: number
 }

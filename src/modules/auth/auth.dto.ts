@@ -1,14 +1,20 @@
-import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
-import { IsEmail, IsMobilePhone, IsNotEmpty, IsOptional, MinLength } from "class-validator";
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger'
+import {
+    IsEmail,
+    IsMobilePhone,
+    IsNotEmpty,
+    IsOptional,
+    MinLength,
+} from 'class-validator'
 
 export class SignInDto {
     @ApiProperty()
     @IsMobilePhone()
-    phone: string;
+    phone: string
 
     @ApiProperty({ minLength: 8 })
     @MinLength(8)
-    password: string;
+    password: string
 }
 
 export class SignUpDto {
@@ -32,15 +38,15 @@ export class SignUpDto {
 
 export class AuthDto {
     @ApiProperty()
-    id: string;
+    id: string
     @ApiProperty()
-    name: string;
+    name: string
     @ApiProperty()
-    role: string;
+    role: string
     @ApiProperty()
-    phone: string;
+    phone: string
     @ApiPropertyOptional()
-    email?: string;
+    email?: string
     @ApiProperty()
-    token: string;
+    token: string
 }

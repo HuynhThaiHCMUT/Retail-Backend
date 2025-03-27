@@ -1,21 +1,26 @@
-import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger"
-import { IsEmail, IsEnum, IsMobilePhone, IsNotEmpty, IsOptional } from "class-validator"
-import { Role } from "src/utils/enum";
+import { ApiProperty, ApiPropertyOptional, OmitType } from '@nestjs/swagger'
+import {
+    IsEmail,
+    IsEnum,
+    IsMobilePhone,
+    IsNotEmpty,
+    IsOptional,
+} from 'class-validator'
+import { Role } from 'src/utils/enum'
 
 export class FileUploadDto {
     @ApiProperty({ type: 'string', format: 'binary' })
-    file: any;
+    file: any
 }
-  
 
 export class CreateUserDto {
     @ApiProperty()
     @IsNotEmpty()
     name: string
 
-    @ApiPropertyOptional()
-    @IsOptional()
-    password?: string
+    @ApiProperty()
+    @IsNotEmpty()
+    password: string
 
     @ApiPropertyOptional()
     @IsOptional()
@@ -26,7 +31,7 @@ export class CreateUserDto {
     @IsMobilePhone()
     phone: string
 
-    @ApiPropertyOptional({enum: Role})
+    @ApiPropertyOptional({ enum: Role })
     @IsOptional()
     @IsEnum(Role)
     role?: string
@@ -51,7 +56,7 @@ export class UpdateUserDto {
     @IsMobilePhone()
     phone?: string
 
-    @ApiPropertyOptional({enum: Role})
+    @ApiPropertyOptional({ enum: Role })
     @IsOptional()
     @IsEnum(Role)
     role?: string
@@ -60,7 +65,7 @@ export class UpdateUserDto {
     picture?: string
 }
 
-export class UserDto extends CreateUserDto {
+export class UserDto extends OmitType(CreateUserDto, ['password'] as const) {
     @ApiProperty()
     id: string
     @ApiProperty()

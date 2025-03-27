@@ -1,28 +1,42 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, ManyToMany, ManyToOne } from 'typeorm';
-import { User } from '../users/user.entity';
+import {
+    Entity,
+    PrimaryGeneratedColumn,
+    Column,
+    CreateDateColumn,
+    ManyToMany,
+    ManyToOne,
+} from 'typeorm'
+import { User } from '../users/user.entity'
+import { AuditLogDto } from './audit-log.dto'
 
 @Entity()
 export class AuditLog {
     @PrimaryGeneratedColumn('uuid')
-    id: string;
+    id: string
     @Column()
-    module: string;
+    module: string
     @Column()
-    recordId: string;
+    recordId: string
     @Column()
-    fieldName: string;
+    fieldName: string
     @Column('text', { nullable: true })
-    oldValue: string | null;
+    oldValue: string | null
     @Column('text', { nullable: true })
-    newValue: string | null;
-    @ManyToOne(() => User, user => user.auditLogs, { nullable: true })
-    changedBy: User;
+    newValue: string | null
+    @ManyToOne(() => User, (user) => user.auditLogs, { nullable: true })
+    changedBy: User
     @CreateDateColumn()
-    changedAt: Date;
+    changedAt: Date
 
-    toDto() {
+    toDto(): AuditLogDto {
         return {
-            ...this,
+            id: this.id,
+            module: this.module,
+            recordId: this.recordId,
+            fieldName: this.fieldName,
+            oldValue: this.oldValue,
+            newValue: this.newValue,
+            changedAt: this.changedAt,
             changedBy: this.changedBy.name,
         }
     }

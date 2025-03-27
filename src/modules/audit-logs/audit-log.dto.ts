@@ -1,20 +1,20 @@
-import { ApiProperty } from "@nestjs/swagger";
+import { ApiProperty } from '@nestjs/swagger'
 
 export class AuditLogDto {
     @ApiProperty()
-    id: string;
+    id: string
     @ApiProperty()
-    module: string;
+    module: string
     @ApiProperty()
-    recordId: string;
+    recordId: string
     @ApiProperty()
-    fieldName: string;
+    fieldName: string
     @ApiProperty()
-    oldValue: string;
+    oldValue: string
     @ApiProperty()
-    newValue: string;
+    newValue: string
     @ApiProperty()
-    changedBy: string;
+    changedBy: string
     @ApiProperty()
-    changedAt: Date;
+    changedAt: Date
 }

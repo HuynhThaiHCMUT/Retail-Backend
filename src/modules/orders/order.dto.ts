@@ -1,76 +1,84 @@
-import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
-import { IsArray, IsEnum, IsOptional, ValidateNested } from "class-validator";
-import { CreateOrderProductDto, OrderProductDto, UpdateOrderProductDto } from "./order-product.dto";
-import { Type } from "class-transformer";
-import { OrderStatus } from "src/utils/enum";
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger'
+import {
+    ArrayMinSize,
+    IsArray,
+    IsEnum,
+    IsOptional,
+    ValidateNested,
+} from 'class-validator'
+import {
+    CreateOrderProductDto,
+    OrderProductDto,
+    UpdateOrderProductDto,
+} from './order-product.dto'
+import { Type } from 'class-transformer'
+import { OrderStatus } from 'src/utils/enum'
 
 export class CreatePOSOrderDto {
     @ApiProperty({ type: () => [CreateOrderProductDto] })
     @IsArray()
     @ValidateNested({ each: true })
     @Type(() => CreateOrderProductDto)
-    products: CreateOrderProductDto[];
+    products: CreateOrderProductDto[]
 }
 
 export class CreateOnlineOrderDto extends CreatePOSOrderDto {
     @ApiPropertyOptional()
     @IsOptional()
-    customerId?: string;
+    customerId?: string
     @ApiPropertyOptional()
     @IsOptional()
-    address?: string;
+    address?: string
     @ApiPropertyOptional()
     @IsOptional()
-    phone?: string;
+    phone?: string
     @ApiPropertyOptional()
     @IsOptional()
-    email?: string;
+    email?: string
     @ApiPropertyOptional()
     @IsOptional()
-    customerName?: string;
+    customerName?: string
 }
 
 export class OrderDto extends CreateOnlineOrderDto {
     @ApiProperty()
-    id: string;
-    @ApiProperty({enum: OrderStatus})
-    status: string;
+    id: string
+    @ApiProperty({ enum: OrderStatus })
+    status: string
     @ApiProperty()
-    total: number;
+    total: number
     @ApiProperty()
-    createdAt: Date;
+    createdAt: Date
     @ApiProperty()
-    updatedAt: Date;
+    updatedAt: Date
     @ApiProperty()
-    deletedAt: Date;
-    @ApiProperty()
-    staffId?: string;
+    staffId?: string
     @ApiProperty({ type: () => [OrderProductDto] })
     @IsArray()
+    @ArrayMinSize(1)
     @ValidateNested({ each: true })
     @Type(() => OrderProductDto)
-    products: OrderProductDto[];
+    products: OrderProductDto[]
 }
 
-
 export class UpdateOrderDto {
-    @ApiPropertyOptional({enum: OrderStatus})
+    @ApiPropertyOptional({ enum: OrderStatus })
     @IsOptional()
     @IsEnum(OrderStatus)
-    status?: string;
+    status?: string
     @ApiPropertyOptional()
     @IsOptional()
-    address?: string;
+    address?: string
     @ApiPropertyOptional()
     @IsOptional()
-    phone?: string;
+    phone?: string
     @ApiPropertyOptional()
     @IsOptional()
-    email?: string;
+    email?: string
     @ApiPropertyOptional()
     @IsOptional()
-    customerName?: string;
-    @ApiPropertyOptional({ type: () => [UpdateOrderProductDto]})
+    customerName?: string
+    @ApiPropertyOptional({ type: () => [UpdateOrderProductDto] })
     @IsOptional()
-    products?: (CreateOrderProductDto | UpdateOrderProductDto)[];
+    products?: (CreateOrderProductDto | UpdateOrderProductDto)[]
 }

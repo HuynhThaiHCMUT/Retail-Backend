@@ -1,0 +1,8 @@
+# Ignore artifacts:
+dist
+test
+
+**/.git
+**/.svn
+**/.hg
+**/node_modules

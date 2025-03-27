@@ -1,7 +1,15 @@
-import { Column, CreateDateColumn, DeleteDateColumn, Entity, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm"
-import { Order } from "../orders/order.entity"
-import { Role } from "src/utils/enum"
-import { AuditLog } from "../audit-logs/audit-log.entity"
+import {
+    Column,
+    CreateDateColumn,
+    DeleteDateColumn,
+    Entity,
+    OneToMany,
+    PrimaryGeneratedColumn,
+    UpdateDateColumn,
+} from 'typeorm'
+import { Order } from '../orders/order.entity'
+import { Role } from 'src/utils/enum'
+import { AuditLog } from '../audit-logs/audit-log.entity'
 
 @Entity()
 export class User {
@@ -9,13 +17,13 @@ export class User {
     id: string
     @Column()
     name: string
-    @Column({nullable: true})
+    @Column({ nullable: true })
     email: string
-    @Column({length: 15, unique: true})
+    @Column({ length: 15, unique: true })
     phone: string
-    @Column({type: "enum", enum: Role})
+    @Column({ type: 'enum', enum: Role })
     role: string
-    @Column({nullable: true})
+    @Column({ nullable: true })
     picture: string
     @Column()
     password: string
@@ -25,14 +33,23 @@ export class User {
     updatedAt: Date
     @DeleteDateColumn()
     deletedAt: Date
-    @OneToMany(() => Order, order => order.customer)
+    @OneToMany(() => Order, (order) => order.customer)
     customerOrders: Order[]
-    @OneToMany(() => Order, order => order.staff)
+    @OneToMany(() => Order, (order) => order.staff)
     staffOrders: Order[]
-    @OneToMany(() => AuditLog, auditLog => auditLog.changedBy)
+    @OneToMany(() => AuditLog, (auditLog) => auditLog.changedBy)
     auditLogs: AuditLog[]
 
     toDto() {
-        return {...this, password: undefined}
+        return {
+            id: this.id,
+            name: this.name,
+            email: this.email,
+            phone: this.phone,
+            role: this.role,
+            picture: this.picture,
+            createdAt: this.createdAt,
+            updatedAt: this.updatedAt,
+        }
     }
 }
