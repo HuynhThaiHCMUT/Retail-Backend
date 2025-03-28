@@ -15,6 +15,8 @@ import { CreateProductDto, ProductDto, UpdateProductDto } from './product.dto'
 import { Product } from './product.entity'
 import { CategoriesService } from '../categories/categories.service'
 import { UnitsService } from '../units/units.service'
+import { PRODUCT_ERRORS } from 'src/error/product.error'
+import { FILE_ERRORS } from 'src/error/file.error'
 
 @Injectable()
 export class ProductsService {
@@ -34,7 +36,7 @@ export class ProductsService {
             relations: ['categories', 'units'],
         })
         if (!product)
-            throw new NotFoundException(`Product with ID ${id} not found`)
+            throw new NotFoundException(PRODUCT_ERRORS.PRODUCT_NOT_FOUND_ERROR)
         return product
     }
 
@@ -143,7 +145,7 @@ export class ProductsService {
             await fs.unlink(filePath) // Delete the file
             return
         } catch (error) {
-            throw new NotFoundException('File not found')
+            throw new NotFoundException(FILE_ERRORS.FILE_NOT_FOUND_ERROR)
         }
     }
 }

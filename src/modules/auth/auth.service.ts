@@ -1,7 +1,13 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common'
 import { JwtService } from '@nestjs/jwt'
 import { UsersService } from '../users/users.service'
-import { SignInDto, SignUpDto, AuthDto, RefreshTokenDto, NewTokenDto } from './auth.dto'
+import {
+    SignInDto,
+    SignUpDto,
+    AuthDto,
+    RefreshTokenDto,
+    NewTokenDto,
+} from './auth.dto'
 import { Role } from 'src/utils/enum'
 import { AUTH_ERRORS } from 'src/error/auth.error'
 
@@ -51,31 +57,36 @@ export class AuthService {
         return this.jwtService.sign(payload, {
             expiresIn: process.env.JWT_EXPIRATION,
             secret: process.env.JWT_SECRET,
-        });
+        })
     }
 
     generateRefreshToken(userId: any): string {
-        return this.jwtService.sign({
-            id: userId,
-            version: process.env.JWT_REFRESH_VERSION,
-        }, {
-            expiresIn: process.env.JWT_REFRESH_EXPIRATION,
-            secret: process.env.JWT_REFRESH_SECRET,
-        });
+        return this.jwtService.sign(
+            {
+                id: userId,
+                version: process.env.JWT_REFRESH_VERSION,
+            },
+            {
+                expiresIn: process.env.JWT_REFRESH_EXPIRATION,
+                secret: process.env.JWT_REFRESH_SECRET,
+            }
+        )
     }
 
     async verifyRefreshToken(token: string): Promise<NewTokenDto> {
         try {
             const payload = this.jwtService.verify(token, {
                 secret: process.env.JWT_REFRESH_SECRET,
-            });
-            const user = await this.usersService.findOneDto(payload.id);
+            })
+            const user = await this.usersService.findOneDto(payload.id)
             return {
                 token: this.generateToken(user),
                 refreshToken: this.generateRefreshToken(user.id),
-            };
+            }
         } catch (error) {
-            throw new UnauthorizedException(AUTH_ERRORS.INVALID_REFRESH_TOKEN_ERROR);
+            throw new UnauthorizedException(
+                AUTH_ERRORS.INVALID_REFRESH_TOKEN_ERROR
+            )
         }
     }
 }

@@ -8,7 +8,13 @@ import {
     ApiUnprocessableEntityResponse,
 } from '@nestjs/swagger'
 import { AuthService } from './auth.service'
-import { SignInDto, SignUpDto, AuthDto, RefreshTokenDto, NewTokenDto } from './auth.dto'
+import {
+    SignInDto,
+    SignUpDto,
+    AuthDto,
+    RefreshTokenDto,
+    NewTokenDto,
+} from './auth.dto'
 import { Public } from './auth.guard'
 
 @ApiTags('auth')
@@ -57,8 +63,10 @@ export class AuthController {
     @ApiUnauthorizedResponse({
         description: 'Invalid refresh token',
     })
-    async refreshToken(@Body() refreshTokenDto: RefreshTokenDto): Promise<NewTokenDto> {
-        const { token } = refreshTokenDto;
-        return this.authService.verifyRefreshToken(token);
+    async refreshToken(
+        @Body() refreshTokenDto: RefreshTokenDto
+    ): Promise<NewTokenDto> {
+        const { token } = refreshTokenDto
+        return this.authService.verifyRefreshToken(token)
     }
 }

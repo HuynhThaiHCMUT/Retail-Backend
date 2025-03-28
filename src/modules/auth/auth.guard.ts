@@ -8,7 +8,7 @@ import {
 } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { Reflector } from '@nestjs/core'
-import { JwtService } from '@nestjs/jwt'
+import { JwtService, TokenExpiredError } from '@nestjs/jwt'
 import { Request } from 'express'
 import { AUTH_ERRORS } from 'src/error/auth.error'
 import { Role } from 'src/utils/enum'
@@ -56,7 +56,9 @@ export class AuthGuard implements CanActivate {
             })
             request['user'] = payload
             this.requestContext.run(() => {}, { userId: payload.id })
-        } catch {
+        } catch (error) {
+            if (error instanceof TokenExpiredError)
+                throw new UnauthorizedException(AUTH_ERRORS.EXPIRED_TOKEN_ERROR)
             throw new UnauthorizedException(AUTH_ERRORS.INVALID_TOKEN_ERROR)
         }
 

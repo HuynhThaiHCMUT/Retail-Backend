@@ -33,6 +33,7 @@ import {
 import { UsersService } from './users.service'
 import { Admin, AdminOrSelf } from '../auth/auth.guard'
 import { Role } from 'src/utils/enum'
+import { FILE_ERRORS } from 'src/error/file.error'
 
 @ApiTags('users')
 @ApiBearerAuth()
@@ -116,7 +117,7 @@ export class UsersController {
         @UploadedFile() file: Express.Multer.File
     ) {
         if (!file) {
-            throw new NotFoundException('File not found')
+            throw new NotFoundException(FILE_ERRORS.FILE_NOT_FOUND_ERROR)
         }
         return this.usersService.uploadAvatar(id, file.filename)
     }

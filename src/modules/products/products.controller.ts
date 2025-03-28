@@ -33,6 +33,7 @@ import {
 } from './product.dto'
 import { ProductsService } from './products.service'
 import { Public } from '../auth/auth.guard'
+import { FILE_ERRORS } from 'src/error/file.error'
 
 @ApiTags('products')
 @ApiBearerAuth()
@@ -132,7 +133,7 @@ export class ProductsController {
         @UploadedFiles() files: Array<Express.Multer.File>
     ) {
         if (!files) {
-            throw new NotFoundException('File not found')
+            throw new NotFoundException(FILE_ERRORS.FILE_NOT_FOUND_ERROR)
         }
         return this.productsService.getPicturesById(id)
     }

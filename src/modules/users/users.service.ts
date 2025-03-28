@@ -10,6 +10,7 @@ import { Repository } from 'typeorm'
 import { InjectRepository } from '@nestjs/typeorm'
 import { CreateUserDto, UpdateUserDto, UserDto } from './user.dto'
 import { NewTokenDto, SignInDto } from '../auth/auth.dto'
+import { AUTH_ERRORS } from 'src/error/auth.error'
 
 @Injectable()
 export class UsersService {
@@ -20,7 +21,7 @@ export class UsersService {
 
     async findOne(id: string): Promise<User> {
         const user = await this.usersRepository.findOne({ where: { id } })
-        if (!user) throw new NotFoundException(`User with ID ${id} not found`)
+        if (!user) throw new NotFoundException(AUTH_ERRORS.uSER_NOT_FOUND_ERROR)
         return user
     }
 
@@ -40,7 +41,7 @@ export class UsersService {
         const user = await this.usersRepository.findOneBy({ phone: data.phone })
         if (!user || !(await bcrypt.compare(data.password, user.password))) {
             throw new UnauthorizedException(
-                'Phone number or password is incorrect'
+                AUTH_ERRORS.INVALID_CREDENTIALS_ERROR
             )
         }
         return user.toDto()
@@ -52,7 +53,7 @@ export class UsersService {
         })
         if (existed) {
             throw new UnprocessableEntityException(
-                'Phone number already exists'
+                AUTH_ERRORS.DUPPLICATE_PHONE_ERROR
             )
         }
 

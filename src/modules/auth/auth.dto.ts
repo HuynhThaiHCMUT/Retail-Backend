@@ -55,16 +55,16 @@ export class AuthDto {
 
 export class RefreshTokenDto {
     @ApiProperty()
-    token: string;
+    token: string
 
     @ApiProperty()
-    userId: string;
+    userId: string
 }
 
 export class NewTokenDto {
     @ApiProperty()
-    token: string;
+    token: string
 
     @ApiProperty()
-    refreshToken: string;
+    refreshToken: string
 }
