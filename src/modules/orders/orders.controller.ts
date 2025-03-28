@@ -42,7 +42,7 @@ export class OrdersController {
     })
     @ApiNotFoundResponse({ description: 'Order not found' })
     async getOrderById(@Param('id') id: string) {
-        return this.ordersService.findOne({ id })
+        return this.ordersService.findOneDto(id)
     }
 
     @Staff()

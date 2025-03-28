@@ -1,8 +1,9 @@
-import { Injectable } from '@nestjs/common'
+import { Injectable, UnauthorizedException } from '@nestjs/common'
 import { JwtService } from '@nestjs/jwt'
 import { UsersService } from '../users/users.service'
-import { SignInDto, SignUpDto, AuthDto } from './auth.dto'
+import { SignInDto, SignUpDto, AuthDto, RefreshTokenDto, NewTokenDto } from './auth.dto'
 import { Role } from 'src/utils/enum'
+import { AUTH_ERRORS } from 'src/error/auth.error'
 
 @Injectable()
 export class AuthService {
@@ -22,7 +23,8 @@ export class AuthService {
         }
         return {
             ...userInfo,
-            token: this.jwtService.sign(userInfo),
+            token: this.generateToken(userInfo),
+            refreshToken: this.generateRefreshToken(userInfo.id),
         }
     }
 
@@ -40,7 +42,40 @@ export class AuthService {
         }
         return {
             ...userInfo,
-            token: this.jwtService.sign(userInfo),
+            token: this.generateToken(userInfo),
+            refreshToken: this.generateRefreshToken(userInfo.id),
+        }
+    }
+
+    generateToken(payload: any): string {
+        return this.jwtService.sign(payload, {
+            expiresIn: process.env.JWT_EXPIRATION,
+            secret: process.env.JWT_SECRET,
+        });
+    }
+
+    generateRefreshToken(userId: any): string {
+        return this.jwtService.sign({
+            id: userId,
+            version: process.env.JWT_REFRESH_VERSION,
+        }, {
+            expiresIn: process.env.JWT_REFRESH_EXPIRATION,
+            secret: process.env.JWT_REFRESH_SECRET,
+        });
+    }
+
+    async verifyRefreshToken(token: string): Promise<NewTokenDto> {
+        try {
+            const payload = this.jwtService.verify(token, {
+                secret: process.env.JWT_REFRESH_SECRET,
+            });
+            const user = await this.usersService.findOneDto(payload.id);
+            return {
+                token: this.generateToken(user),
+                refreshToken: this.generateRefreshToken(user.id),
+            };
+        } catch (error) {
+            throw new UnauthorizedException(AUTH_ERRORS.INVALID_REFRESH_TOKEN_ERROR);
         }
     }
 }

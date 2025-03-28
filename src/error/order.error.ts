@@ -9,10 +9,10 @@ export const ORDER_ERRORS = Object.freeze({
         code: 'ORDER_PRODUCT_NOT_FOUND',
         id,
     }),
-    UNIT_NOT_FOUND_ERROR: (id) => ({
+    UNIT_NOT_FOUND_ERROR: (name) => ({
         message: 'Đơn vị không tồn tại',
         code: 'UNIT_NOT_FOUND',
-        id,
+        name,
     }),
     PRODUCT_UNIT_NOT_FOUND_ERROR: (productId, unitName) => ({
         message: 'Đơn vị không tồn tại trên sản phẩm',

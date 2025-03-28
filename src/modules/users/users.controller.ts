@@ -61,7 +61,7 @@ export class UsersController {
     @ApiOkResponse({ description: 'Get user info successfully', type: UserDto })
     @ApiUnauthorizedResponse({ description: 'Unauthorized' })
     async getUser(@Param('id') id: string) {
-        return await this.usersService.find(id)
+        return await this.usersService.findOneDto(id)
     }
 
     @Admin()

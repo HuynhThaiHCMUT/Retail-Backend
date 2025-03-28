@@ -9,7 +9,7 @@ import { User } from './user.entity'
 import { Repository } from 'typeorm'
 import { InjectRepository } from '@nestjs/typeorm'
 import { CreateUserDto, UpdateUserDto, UserDto } from './user.dto'
-import { SignInDto } from '../auth/auth.dto'
+import { NewTokenDto, SignInDto } from '../auth/auth.dto'
 
 @Injectable()
 export class UsersService {
@@ -18,10 +18,14 @@ export class UsersService {
         private usersRepository: Repository<User>
     ) {}
 
-    async find(id: string): Promise<UserDto> {
+    async findOne(id: string): Promise<User> {
         const user = await this.usersRepository.findOne({ where: { id } })
         if (!user) throw new NotFoundException(`User with ID ${id} not found`)
-        return user.toDto()
+        return user
+    }
+
+    async findOneDto(id: string): Promise<UserDto> {
+        return (await this.findOne(id)).toDto()
     }
 
     async get(offset: number, limit: number): Promise<UserDto[]> {
@@ -61,26 +65,28 @@ export class UsersService {
     }
 
     async update(id: string, data: UpdateUserDto): Promise<UserDto> {
-        const user = await this.usersRepository.findOne({ where: { id } })
-        if (!user) throw new NotFoundException(`User with ID ${id} not found`)
+        const user = await this.findOne(id)
 
         Object.assign(user, data)
         return (await this.usersRepository.save(user)).toDto()
     }
 
     async delete(id: string): Promise<void> {
-        const user = await this.usersRepository.findOne({ where: { id } })
-        if (!user) throw new NotFoundException(`User with ID ${id} not found`)
-
+        const user = await this.findOne(id)
         await this.usersRepository.softRemove(user)
     }
 
     async uploadAvatar(id: string, picture: string): Promise<string> {
-        const user = await this.usersRepository.findOne({ where: { id } })
-        if (!user) throw new NotFoundException(`User with ID ${id} not found`)
+        const user = await this.findOne(id)
 
         user.picture = picture
         await this.usersRepository.save(user)
         return picture
+    }
+
+    async rotateToken(id: string, refreshToken: string): Promise<void> {
+        const user = await this.findOne(id)
+        user.refreshToken = refreshToken
+        await this.usersRepository.save(user)
     }
 }

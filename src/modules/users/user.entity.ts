@@ -27,6 +27,8 @@ export class User {
     picture: string
     @Column()
     password: string
+    @Column()
+    refreshToken: string
     @CreateDateColumn()
     createdAt: Date
     @UpdateDateColumn()

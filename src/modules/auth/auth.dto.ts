@@ -49,4 +49,22 @@ export class AuthDto {
     email?: string
     @ApiProperty()
     token: string
+    @ApiProperty()
+    refreshToken: string
+}
+
+export class RefreshTokenDto {
+    @ApiProperty()
+    token: string;
+
+    @ApiProperty()
+    userId: string;
+}
+
+export class NewTokenDto {
+    @ApiProperty()
+    token: string;
+
+    @ApiProperty()
+    refreshToken: string;
 }

@@ -35,19 +35,24 @@ export class OrdersService {
         private readonly ordersRepository: Repository<Order>
     ) {}
 
-    async findOne(findOptions: FindOptionsWhere<Order>): Promise<OrderDto> {
-        return (
-            await this.ordersRepository.findOne({
-                where: findOptions,
-                relations: [
-                    'products',
-                    'products.product',
-                    'products.unit',
-                    'staff',
-                    'customer',
-                ],
-            })
-        )?.toDto()
+    async findOne(id: string): Promise<Order> {
+        let order = await this.ordersRepository.findOne({
+            where: { id },
+            relations: [
+                'products',
+                'products.product',
+                'products.unit',
+                'staff',
+                'customer',
+            ],
+        })
+        if (!order)
+            throw new NotFoundException(ORDER_ERRORS.ORDER_NOT_FOUND_ERROR)
+        return order
+    }
+
+    async findOneDto(id: string): Promise<OrderDto> {
+        return (await this.findOne(id)).toDto()
     }
 
     async processOrder(
@@ -78,7 +83,7 @@ export class OrdersService {
                 await manager
                     .getRepository(Unit)
                     .findBy({ name: In(unitNames) })
-            ).map((u) => [u.id, u])
+            ).map((u) => [u.name, u])
         )
         const orderProductMap = new Map(
             (
@@ -92,6 +97,32 @@ export class OrdersService {
         let orderProducts: OrderProduct[] = []
 
         for (let orderProductDto of products) {
+            let product = productMap.get(orderProductDto.productId)
+            if (!product)
+                throw new NotFoundException(
+                    ORDER_ERRORS.PRODUCT_NOT_FOUND_ERROR(
+                        orderProductDto.productId
+                    )
+                )
+
+            let unit: Unit = null
+            if (orderProductDto.unitName) {
+                unit = unitMap.get(orderProductDto.unitName)
+                if (!unit)
+                    throw new NotFoundException(
+                        ORDER_ERRORS.UNIT_NOT_FOUND_ERROR(
+                            orderProductDto.unitName
+                        )
+                    )
+                if (!product.units.some((u) => u.id === unit.id))
+                    throw new NotFoundException(
+                        ORDER_ERRORS.PRODUCT_UNIT_NOT_FOUND_ERROR(
+                            orderProductDto.productId,
+                            orderProductDto.unitName
+                        )
+                    )
+            }
+
             if ('id' in orderProductDto) {
                 let orderProduct = orderProductMap.get(orderProductDto.id)
                 if (!orderProduct)
@@ -100,6 +131,8 @@ export class OrdersService {
                             orderProductDto.id
                         )
                     )
+
+                orderProduct.unit = unitMap.get(orderProductDto.unitName)
                 orderProduct.quantity =
                     orderProductDto.quantity ?? orderProduct.quantity
                 orderProduct.price =
@@ -111,32 +144,6 @@ export class OrdersService {
                 orderProduct.total = orderProduct.quantity * orderProduct.price
                 orderProducts.push(orderProduct)
             } else {
-                let product = productMap.get(orderProductDto.productId)
-                if (!product)
-                    throw new NotFoundException(
-                        ORDER_ERRORS.PRODUCT_NOT_FOUND_ERROR(
-                            orderProductDto.productId
-                        )
-                    )
-
-                let unit: Unit = null
-                if (orderProductDto.unitName) {
-                    unit = unitMap.get(orderProductDto.unitName)
-                    if (!unit)
-                        throw new NotFoundException(
-                            ORDER_ERRORS.UNIT_NOT_FOUND_ERROR(
-                                orderProductDto.unitName
-                            )
-                        )
-                    if (!product.units.some((u) => u.id === unit.id))
-                        throw new NotFoundException(
-                            ORDER_ERRORS.PRODUCT_UNIT_NOT_FOUND_ERROR(
-                                orderProductDto.productId,
-                                orderProductDto.unitName
-                            )
-                        )
-                }
-
                 let orderProduct = new OrderProduct()
                 orderProduct.product = product
                 orderProduct.unit = unit
@@ -228,18 +235,7 @@ export class OrdersService {
         return await this.dataSource.transaction(async (manager) => {
             let orderRepo = manager.getRepository(Order)
 
-            let order = await orderRepo.findOne({
-                where: { id },
-                relations: [
-                    'customer',
-                    'staff',
-                    'products',
-                    'products.product',
-                    'products.unit',
-                ],
-            })
-            if (!order)
-                throw new NotFoundException(ORDER_ERRORS.ORDER_NOT_FOUND_ERROR)
+            let order = await this.findOne(id)
 
             let user = await manager
                 .getRepository(User)
@@ -302,9 +298,8 @@ export class OrdersService {
     }
 
     async deleteOrder(id: string): Promise<void> {
-        let deleteResult = await this.ordersRepository.softDelete(id)
-        if (!deleteResult.affected)
-            throw new NotFoundException(ORDER_ERRORS.ORDER_NOT_FOUND_ERROR)
+        let order = await this.findOne(id)
+        await this.ordersRepository.softDelete(id)
         return
     }
 

@@ -9,6 +9,14 @@ export const AUTH_ERRORS = Object.freeze({
             'Thông tin đăng nhập bị thiếu hoặc không hợp lệ, vui lòng thử lại',
         code: 'INVALID_TOKEN',
     },
+    INVALID_REFRESH_TOKEN_ERROR: {
+        message: 'Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại',
+        code: 'INVALID_REFRESH_TOKEN',
+    },
+    uSER_NOT_FOUND_ERROR: {
+        message: 'Người dùng không tồn tại',
+        code: 'USER_NOT_FOUND',
+    },
     NOT_STAFF_ERROR: {
         message: 'Bạn không có quyền truy cập tài nguyên này',
         code: 'NOT_STAFF',

@@ -3,16 +3,13 @@ import { v4 as uuidv4 } from 'uuid'
 import {
     Body,
     Controller,
-    DefaultValuePipe,
     Delete,
     Get,
     NotFoundException,
     Param,
-    ParseIntPipe,
     Post,
     Put,
     Query,
-    Req,
     UploadedFiles,
     UseInterceptors,
     ValidationPipe,
@@ -24,8 +21,6 @@ import {
     ApiExtraModels,
     ApiNotFoundResponse,
     ApiOkResponse,
-    ApiParam,
-    ApiQuery,
     ApiTags,
     ApiUnauthorizedResponse,
 } from '@nestjs/swagger'
@@ -77,7 +72,7 @@ export class ProductsController {
     @ApiUnauthorizedResponse({ description: 'Unauthorized' })
     @ApiNotFoundResponse({ description: 'Product not found' })
     async getProduct(@Param('id') id: string) {
-        return await this.productsService.find(id)
+        return await this.productsService.findOneDto(id)
     }
 
     @Post()

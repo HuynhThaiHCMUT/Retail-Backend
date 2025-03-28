@@ -28,14 +28,18 @@ export class ProductsService {
         private unitsService: UnitsService
     ) {}
 
-    async find(id: string): Promise<ProductDto> {
+    async findOne(id: string): Promise<Product> {
         let product = await this.productsRepository.findOne({
             where: { id },
             relations: ['categories', 'units'],
         })
         if (!product)
             throw new NotFoundException(`Product with ID ${id} not found`)
-        return product.toDto(await this.getPicturesById(product.id))
+        return product
+    }
+
+    async findOneDto(id: string): Promise<ProductDto> {
+        return (await this.findOne(id)).toDto(await this.getPicturesById(id))
     }
 
     async create(product: CreateProductDto): Promise<ProductDto> {
@@ -53,11 +57,7 @@ export class ProductsService {
     }
 
     async update(id: string, data: UpdateProductDto): Promise<ProductDto> {
-        let product = await this.productsRepository.findOne({
-            where: { id },
-            relations: ['categories', 'units'],
-        })
-        if (!product) throw new NotFoundException()
+        let product = await this.findOne(id)
         Object.assign(product, data)
         product.categories = await this.categoriesService.createFromArray(
             data.categories
@@ -69,12 +69,7 @@ export class ProductsService {
     }
 
     async delete(id: string): Promise<void> {
-        let product = await this.productsRepository.findOne({
-            where: { id },
-            relations: ['categories', 'units'],
-        })
-        if (!product)
-            throw new NotFoundException(`Product with ID ${id} not found`)
+        let product = await this.findOne(id)
         product.categories = []
         await this.unitsService.deleteByProductId(id)
         await this.productsRepository.save(product)
