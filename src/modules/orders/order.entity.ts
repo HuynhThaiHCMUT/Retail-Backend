@@ -19,6 +19,8 @@ import { Audit } from '../audit-logs/audit.decorator'
 export class Order {
     @PrimaryGeneratedColumn('uuid')
     id: string
+    @Column()
+    name: string
     @Column({ type: 'enum', enum: OrderStatus, default: OrderStatus.PENDING })
     @Audit()
     status: string
@@ -57,6 +59,7 @@ export class Order {
     toDto(): OrderDto {
         return {
             id: this.id,
+            name: this.name,
             status: this.status,
             total: this.total,
             address: this.address,

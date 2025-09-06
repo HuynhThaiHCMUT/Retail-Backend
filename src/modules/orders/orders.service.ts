@@ -64,6 +64,22 @@ export class OrdersService {
         let orderProductRepo = manager.getRepository(OrderProduct)
         let orderRepo = manager.getRepository(Order)
 
+        // Generate order name with format "YYMXXXXXXX" where x is incremental
+        let lastOrder = await orderRepo.findOne({
+            order: { createdAt: 'DESC' },
+            select: ['name'],
+        })
+        let orderName = 'YYM' // Replace YY and M with current year and month
+        if (lastOrder) {
+            let lastOrderNumber = parseInt(lastOrder.name.slice(3), 10)
+            let nextOrderNumber = lastOrderNumber + 1
+            orderName += nextOrderNumber.toString().padStart(7, '0')
+        } else {
+            orderName += '0000001' // First order of the month
+        }
+        order.name = orderName
+        
+
         // Bulk load products, units and order products
         const productIds = products.map((p) => p.productId).filter(Boolean)
         const unitNames = products.map((p) => p.unitName).filter(Boolean)

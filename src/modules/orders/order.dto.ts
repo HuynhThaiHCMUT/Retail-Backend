@@ -43,6 +43,8 @@ export class CreateOnlineOrderDto extends CreatePOSOrderDto {
 export class OrderDto extends CreateOnlineOrderDto {
     @ApiProperty()
     id: string
+    @ApiProperty()
+    name: string
     @ApiProperty({ enum: OrderStatus })
     status: string
     @ApiProperty()
