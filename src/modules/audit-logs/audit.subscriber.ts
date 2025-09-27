@@ -35,7 +35,7 @@ export class AuditSubscriber implements EntitySubscriberInterface {
         const user = await userRepo.findOne({ where: { id: userId } })
         if (!user) return
 
-        let logs: AuditLog[] = []
+        const logs: AuditLog[] = []
 
         for (const field of auditedFields) {
             const oldValue = databaseEntity[field]
@@ -65,7 +65,7 @@ export class AuditSubscriber implements EntitySubscriberInterface {
         const auditedFields = getAuditedFields(entity)
         if (auditedFields.length === 0) return
 
-        let logs: AuditLog[] = []
+        const logs: AuditLog[] = []
 
         for (const field of auditedFields) {
             const log = new AuditLog()

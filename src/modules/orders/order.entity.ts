@@ -1,5 +1,4 @@
 import {
-    AfterUpdate,
     Column,
     CreateDateColumn,
     DeleteDateColumn,
@@ -19,7 +18,7 @@ import { Audit } from '../audit-logs/audit.decorator'
 export class Order {
     @PrimaryGeneratedColumn('uuid')
     id: string
-    @Column()
+    @Column({ default: '' })
     name: string
     @Column({ type: 'enum', enum: OrderStatus, default: OrderStatus.PENDING })
     @Audit()

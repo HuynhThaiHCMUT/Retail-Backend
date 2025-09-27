@@ -1,12 +1,18 @@
 import {
-    BadRequestException,
     Injectable,
     Logger,
     NotFoundException,
     UnauthorizedException,
     UnprocessableEntityException,
 } from '@nestjs/common'
-import { EntityManager, FindOptionsWhere, In, Repository } from 'typeorm'
+import {
+    EntityManager,
+    FindOptionsWhere,
+    In,
+    IsNull,
+    Not,
+    Repository,
+} from 'typeorm'
 import { Order } from './order.entity'
 import { OrderProduct } from './order-product.entity'
 import {
@@ -36,7 +42,7 @@ export class OrdersService {
     ) {}
 
     async findOne(id: string): Promise<Order> {
-        let order = await this.ordersRepository.findOne({
+        const order = await this.ordersRepository.findOne({
             where: { id },
             relations: [
                 'products',
@@ -48,6 +54,7 @@ export class OrdersService {
         })
         if (!order)
             throw new NotFoundException(ORDER_ERRORS.ORDER_NOT_FOUND_ERROR)
+        this.logger.debug(`Found order: ${JSON.stringify(order)}`)
         return order
     }
 
@@ -61,24 +68,25 @@ export class OrdersService {
         products: (CreateOrderProductDto | UpdateOrderProductDto)[],
         { useCustomPrice = false }: { useCustomPrice?: boolean } = {}
     ): Promise<OrderDto> {
-        let orderProductRepo = manager.getRepository(OrderProduct)
-        let orderRepo = manager.getRepository(Order)
+        const orderProductRepo = manager.getRepository(OrderProduct)
+        const orderRepo = manager.getRepository(Order)
 
         // Generate order name with format "YYMXXXXXXX" where x is incremental
-        let lastOrder = await orderRepo.findOne({
+        const latestOrder = await orderRepo.findOne({
+            where: { name: Not('') },
             order: { createdAt: 'DESC' },
-            select: ['name'],
         })
-        let orderName = 'YYM' // Replace YY and M with current year and month
-        if (lastOrder) {
-            let lastOrderNumber = parseInt(lastOrder.name.slice(3), 10)
-            let nextOrderNumber = lastOrderNumber + 1
+        let orderName =
+            new Date().getFullYear().toString().slice(2) +
+            (new Date().getMonth() + 1)
+        if (latestOrder) {
+            const latestOrderNumber = parseInt(latestOrder.name.slice(3), 10)
+            const nextOrderNumber = latestOrderNumber + 1
             orderName += nextOrderNumber.toString().padStart(7, '0')
         } else {
             orderName += '0000001' // First order of the month
         }
         order.name = orderName
-        
 
         // Bulk load products, units and order products
         const productIds = products.map((p) => p.productId).filter(Boolean)
@@ -98,7 +106,7 @@ export class OrdersService {
             (
                 await manager
                     .getRepository(Unit)
-                    .findBy({ name: In(unitNames) })
+                    .findBy({ name: In(unitNames), product: Not(IsNull()) })
             ).map((u) => [u.name, u])
         )
         const orderProductMap = new Map(
@@ -110,10 +118,13 @@ export class OrdersService {
             ).map((op) => [op.id, op])
         )
 
-        let orderProducts: OrderProduct[] = []
+        this.logger.debug(Array.from(unitMap.keys()))
 
-        for (let orderProductDto of products) {
-            let product = productMap.get(orderProductDto.productId)
+        const orderProducts: OrderProduct[] = []
+
+        for (const orderProductDto of products) {
+            this.logger.debug(orderProductDto)
+            const product = productMap.get(orderProductDto.productId)
             if (!product)
                 throw new NotFoundException(
                     ORDER_ERRORS.PRODUCT_NOT_FOUND_ERROR(
@@ -140,7 +151,7 @@ export class OrdersService {
             }
 
             if ('id' in orderProductDto) {
-                let orderProduct = orderProductMap.get(orderProductDto.id)
+                const orderProduct = orderProductMap.get(orderProductDto.id)
                 if (!orderProduct)
                     throw new NotFoundException(
                         ORDER_ERRORS.ORDER_PRODUCT_NOT_FOUND_ERROR(
@@ -160,7 +171,7 @@ export class OrdersService {
                 orderProduct.total = orderProduct.quantity * orderProduct.price
                 orderProducts.push(orderProduct)
             } else {
-                let orderProduct = new OrderProduct()
+                const orderProduct = new OrderProduct()
                 orderProduct.product = product
                 orderProduct.unit = unit
                 orderProduct.order = order
@@ -188,8 +199,8 @@ export class OrdersService {
         staffId: string
     ): Promise<OrderDto> {
         return await this.dataSource.transaction(async (manager) => {
-            let orderRepo = manager.getRepository(Order)
-            let user = await manager
+            const orderRepo = manager.getRepository(Order)
+            const user = await manager
                 .getRepository(User)
                 .findOneBy({ id: staffId })
             if (!user)
@@ -197,7 +208,7 @@ export class OrdersService {
                     ORDER_ERRORS.USER_NOT_FOUND_ERROR
                 )
 
-            let order = new Order()
+            const order = new Order()
             order.staff = user
             order.status = OrderStatus.DONE
             await orderRepo.save(order)
@@ -213,25 +224,32 @@ export class OrdersService {
         userId: string
     ): Promise<OrderDto> {
         return await this.dataSource.transaction(async (manager) => {
-            let orderRepo = manager.getRepository(Order)
-            let user = userId
-                ? await manager.getRepository(User).findOneBy({ id: userId })
-                : null
-            if (userId && !user)
+            const orderRepo = manager.getRepository(Order)
+
+            // Require a logged-in user
+            if (!userId) {
                 throw new UnauthorizedException(
                     ORDER_ERRORS.USER_NOT_FOUND_ERROR
                 )
-            let order = new Order()
-            if (!userId) {
-                if (!data.address || !data.phone || !data.customerName)
-                    throw new BadRequestException(
-                        ORDER_ERRORS.MISSING_CUSTOMER_INFO_ERROR
-                    )
-            } else {
-                if (user?.role === Role.CUSTOMER) {
-                    order.customer = user
-                } else if (user) order.staff = user
             }
+
+            const user = await manager
+                .getRepository(User)
+                .findOneBy({ id: userId })
+            if (!user) {
+                throw new UnauthorizedException(
+                    ORDER_ERRORS.USER_NOT_FOUND_ERROR
+                )
+            }
+
+            const order = new Order()
+            if (user.role === Role.CUSTOMER) {
+                order.customer = user
+            } else {
+                // staff or other roles creating online order are set as staff
+                order.staff = user
+            }
+
             order.address = data.address
             order.phone = data.phone
             order.email = data.email
@@ -249,11 +267,11 @@ export class OrdersService {
         userId: string
     ): Promise<OrderDto> {
         return await this.dataSource.transaction(async (manager) => {
-            let orderRepo = manager.getRepository(Order)
+            const orderRepo = manager.getRepository(Order)
 
-            let order = await this.findOne(id)
+            const order = await this.findOne(id)
 
-            let user = await manager
+            const user = await manager
                 .getRepository(User)
                 .findOne({ where: { id: userId }, select: ['id', 'role'] })
             if (!user)
@@ -287,15 +305,15 @@ export class OrdersService {
 
     async closeOrder(id: string, userId: string): Promise<OrderDto> {
         return await this.dataSource.transaction(async (manager) => {
-            let orderRepo = manager.getRepository(Order)
-            let order = await orderRepo.findOne({
+            const orderRepo = manager.getRepository(Order)
+            const order = await orderRepo.findOne({
                 where: { id },
                 relations: ['customer', 'products', 'products.product'],
             })
             if (!order)
                 throw new NotFoundException(ORDER_ERRORS.ORDER_NOT_FOUND_ERROR)
 
-            let user = await manager
+            const user = await manager
                 .getRepository(User)
                 .findOne({ where: { id: userId }, select: ['id', 'role'] })
             if (!user)
@@ -314,13 +332,13 @@ export class OrdersService {
     }
 
     async deleteOrder(id: string): Promise<void> {
-        let order = await this.findOne(id)
+        //const order = await this.findOne(id)
         await this.ordersRepository.softDelete(id)
         return
     }
 
     async get(offset: number = 0, limit: number = 10): Promise<OrderDto[]> {
-        let findOptions: FindOptionsWhere<Order> = {}
+        const findOptions: FindOptionsWhere<Order> = {}
         return (
             await this.ordersRepository.find({
                 where: findOptions,

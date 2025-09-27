@@ -13,9 +13,8 @@ import { CategoriesModule } from './modules/categories/categories.module'
 import { OrdersModule } from './modules/orders/orders.module'
 import { AuditSubscriber } from './modules/audit-logs/audit.subscriber'
 import { RequestContext } from './utils/request-context'
-import { AuditLogsService } from './modules/audit-logs/audit-logs.service'
-import { AuditLogsController } from './modules/audit-logs/audit-logs.controller'
 import { AuditLogsModule } from './modules/audit-logs/audit-logs.module'
+import { ReportsModule } from './modules/reports/reports.module'
 
 @Module({
     imports: [
@@ -33,6 +32,7 @@ import { AuditLogsModule } from './modules/audit-logs/audit-logs.module'
                 autoLoadEntities: true,
                 charset: 'utf8mb4',
                 collation: 'utf8mb4_unicode_ci',
+                timezone: 'Z',
             }),
             inject: [ConfigService],
         }),
@@ -48,6 +48,7 @@ import { AuditLogsModule } from './modules/audit-logs/audit-logs.module'
         CategoriesModule,
         OrdersModule,
         AuditLogsModule,
+        ReportsModule,
     ],
     controllers: [AppController],
     providers: [AppService, RequestContext, AuditSubscriber],

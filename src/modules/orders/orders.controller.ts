@@ -4,7 +4,6 @@ import {
     DefaultValuePipe,
     Delete,
     Get,
-    HttpCode,
     Param,
     ParseIntPipe,
     Post,
@@ -12,7 +11,7 @@ import {
     Query,
     Req,
 } from '@nestjs/common'
-import { Admin, Public, Staff } from '../auth/auth.guard'
+import { Admin, Staff } from '../auth/auth.guard'
 import {
     CreateOnlineOrderDto,
     CreatePOSOrderDto,
@@ -71,7 +70,6 @@ export class OrdersController {
         return this.ordersService.createPOSOrder(data, req['user'].id)
     }
 
-    @Public()
     @Post('online')
     @ApiOkResponse({
         type: OrderDto,

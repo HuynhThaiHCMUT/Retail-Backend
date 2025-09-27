@@ -18,8 +18,8 @@ export class CategoriesService {
 
     async createFromArray(data: string[] | undefined) {
         if (!data) return []
-        let categories = []
-        for (let category of data) {
+        const categories = []
+        for (const category of data) {
             try {
                 let c = await this.categoriesRepository.findOneBy({
                     name: category,

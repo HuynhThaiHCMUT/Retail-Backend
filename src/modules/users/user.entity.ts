@@ -27,7 +27,7 @@ export class User {
     picture: string
     @Column()
     password: string
-    @Column({nullable: true})
+    @Column({ nullable: true })
     refreshToken: string
     @CreateDateColumn()
     createdAt: Date

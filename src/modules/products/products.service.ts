@@ -31,7 +31,7 @@ export class ProductsService {
     ) {}
 
     async findOne(id: string): Promise<Product> {
-        let product = await this.productsRepository.findOne({
+        const product = await this.productsRepository.findOne({
             where: { id },
             relations: ['categories', 'units'],
         })
@@ -45,10 +45,10 @@ export class ProductsService {
     }
 
     async create(product: CreateProductDto): Promise<ProductDto> {
-        let categories = await this.categoriesService.createFromArray(
+        const categories = await this.categoriesService.createFromArray(
             product.categories
         )
-        let units = await this.unitsService.createFromArray(product.units)
+        const units = await this.unitsService.createFromArray(product.units)
         let createdProduct = this.productsRepository.create({
             ...product,
             categories,
@@ -71,7 +71,7 @@ export class ProductsService {
     }
 
     async delete(id: string): Promise<void> {
-        let product = await this.findOne(id)
+        const product = await this.findOne(id)
         product.categories = []
         await this.unitsService.deleteByProductId(id)
         await this.productsRepository.save(product)
@@ -89,7 +89,7 @@ export class ProductsService {
         priceTo?: number,
         categories?: string
     ): Promise<ProductDto[]> {
-        let order: { [key: string]: 'ASC' | 'DESC' } = {}
+        const order: { [key: string]: 'ASC' | 'DESC' } = {}
         switch (sortBy) {
             case 'price-asc':
                 order.price = 'ASC'
@@ -101,7 +101,7 @@ export class ProductsService {
                 order.createdAt = 'DESC'
                 break
         }
-        let where: FindOptionsWhere<Product> = {}
+        const where: FindOptionsWhere<Product> = {}
         if (name) {
             where.name = Like(`%${name}%`)
         }
@@ -116,10 +116,10 @@ export class ProductsService {
             where.price = LessThanOrEqual(priceTo)
         }
         if (categories) {
-            let categoriesArray = categories.split(',')
+            const categoriesArray = categories.split(',')
             where.categories = In(categoriesArray)
         }
-        let products = await this.productsRepository.find({
+        const products = await this.productsRepository.find({
             skip: offset,
             take: limit,
             order,

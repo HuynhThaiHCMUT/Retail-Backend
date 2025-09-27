@@ -11,7 +11,7 @@ export class AuditLogsService {
     ) {}
 
     async getLogs(module: string, id: string) {
-        let auditLogs = await this.auditLogRepository.find({
+        const auditLogs = await this.auditLogRepository.find({
             where: {
                 module,
                 recordId: id,
