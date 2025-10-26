@@ -117,7 +117,7 @@ export class ProductsService {
         }
         if (categories) {
             const categoriesArray = categories.split(',')
-            where.categories = In(categoriesArray)
+            where.categories = { name: In(categoriesArray) }
         }
         const products = await this.productsRepository.find({
             skip: offset,

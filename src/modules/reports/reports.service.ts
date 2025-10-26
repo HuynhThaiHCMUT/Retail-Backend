@@ -3,10 +3,10 @@ import { InjectRepository } from '@nestjs/typeorm'
 import { Repository } from 'typeorm'
 import { Order } from '../orders/order.entity'
 import { OrderProduct } from '../orders/order-product.entity'
-import { Product } from '../products/product.entity'
-import { Unit } from '../units/unit.entity'
 import { getRangeForFilter, toLocalTz } from 'src/utils/date-range'
 import { RangeType, MetricType, TopSoldItemDto } from './reports.dto'
+import { ProductsService } from '../products/products.service'
+import { ProductDto } from '../products/product.dto'
 
 type ChartItem = { label: string; value: number }
 
@@ -18,8 +18,7 @@ export class ReportsService {
         @InjectRepository(Order) private orderRepo: Repository<Order>,
         @InjectRepository(OrderProduct)
         private opRepo: Repository<OrderProduct>,
-        @InjectRepository(Product) private productRepo: Repository<Product>,
-        @InjectRepository(Unit) private unitRepo: Repository<Unit>
+        private productsService: ProductsService
     ) {}
 
     /**
@@ -71,39 +70,59 @@ export class ReportsService {
 
     /**
      * Return top 10 sold products within the given range.
-     * Each item: { productId, name, amountSold }
+     * Each item: { ...product, amountSold }
      */
     async getTopSold(
         range: RangeType = 'month',
-        date?: string
+        date?: string,
+        limit = 10
     ): Promise<TopSoldItemDto[]> {
         const { start, end } = getRangeForFilter(range, date)
         const amountExpr = this.amountExpression()
 
         const rows = await this.opRepo
             .createQueryBuilder('op')
-            .select('product.id', 'productId')
-            .addSelect('product.name', 'productName')
+            .select('product.id', 'product_id')
             .addSelect(
                 `COALESCE(SUM((${amountExpr}) * op.quantity), 0)`,
                 'amountSold'
             )
             .innerJoin('op.order', 'order')
-            .innerJoin('op.product', 'product')
+            .leftJoinAndSelect('op.product', 'product')
             .leftJoin('op.unit', 'unit')
             .where('order.createdAt BETWEEN :start AND :end', { start, end })
             .andWhere('order.deletedAt IS NULL')
             .groupBy('product.id')
             .addGroupBy('product.name')
             .orderBy('amountSold', 'DESC')
-            .limit(10)
+            .limit(limit)
             .getRawMany()
 
-        return rows.map((r) => ({
-            productId: r.productId,
-            productName: r.productName,
-            amountSold: Number(r.amountSold),
-        }))
+        return Promise.all(
+            rows.map(async (r) => {
+                const flat = this.stripProductPrefix(r)
+                const pictures = await this.productsService.getPicturesById(
+                    flat.id
+                )
+                return {
+                    ...flat,
+                    amountSold: Number(r.amountSold),
+                    pictures,
+                }
+            })
+        )
+    }
+
+    stripProductPrefix = (row: Record<string, any>): ProductDto => {
+        const out: Record<string, any> = {}
+        for (const k of Object.keys(row)) {
+            if (k.startsWith('product_')) {
+                out[k.slice('product_'.length)] = row[k]
+            } else {
+                out[k] = row[k]
+            }
+        }
+        return out as ProductDto
     }
 
     /**

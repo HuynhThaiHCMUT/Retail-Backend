@@ -54,7 +54,6 @@ export class OrdersService {
         })
         if (!order)
             throw new NotFoundException(ORDER_ERRORS.ORDER_NOT_FOUND_ERROR)
-        this.logger.debug(`Found order: ${JSON.stringify(order)}`)
         return order
     }
 
@@ -118,12 +117,9 @@ export class OrdersService {
             ).map((op) => [op.id, op])
         )
 
-        this.logger.debug(Array.from(unitMap.keys()))
-
         const orderProducts: OrderProduct[] = []
 
         for (const orderProductDto of products) {
-            this.logger.debug(orderProductDto)
             const product = productMap.get(orderProductDto.productId)
             if (!product)
                 throw new NotFoundException(
@@ -133,7 +129,10 @@ export class OrdersService {
                 )
 
             let unit: Unit = null
-            if (orderProductDto.unitName) {
+            if (
+                orderProductDto.unitName &&
+                orderProductDto.unitName.trim() !== product.baseUnit
+            ) {
                 unit = unitMap.get(orderProductDto.unitName)
                 if (!unit)
                     throw new NotFoundException(

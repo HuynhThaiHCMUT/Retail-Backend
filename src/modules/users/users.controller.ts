@@ -19,7 +19,6 @@ import {
     ApiBearerAuth,
     ApiBody,
     ApiOkResponse,
-    ApiParam,
     ApiQuery,
     ApiTags,
     ApiUnauthorizedResponse,
@@ -43,7 +42,7 @@ export class UsersController {
 
     @Admin()
     @Get()
-    @ApiQuery({ name: 'page', type: Number, required: false })
+    @ApiQuery({ name: 'offset', type: Number, required: false })
     @ApiQuery({ name: 'limit', type: Number, required: false })
     @ApiOkResponse({
         description: 'Get users info successfully',
@@ -51,10 +50,11 @@ export class UsersController {
     })
     @ApiUnauthorizedResponse({ description: 'Unauthorized' })
     async getUsers(
-        @Query('page', new ParseIntPipe({ optional: true })) page: number = 1,
+        @Query('offset', new ParseIntPipe({ optional: true }))
+        offset: number = 0,
         @Query('limit', new ParseIntPipe({ optional: true })) limit: number = 10
     ) {
-        return await this.usersService.get(page, limit)
+        return await this.usersService.get(offset, limit)
     }
 
     @AdminOrSelf()

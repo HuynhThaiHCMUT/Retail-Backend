@@ -1,6 +1,7 @@
 import { IsIn, IsOptional, IsString } from 'class-validator'
 import { Type } from 'class-transformer'
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger'
+import { ProductDto } from '../products/product.dto'
 
 export type RangeType = 'day' | 'week' | 'month'
 export type MetricType = 'revenue' | 'profit' | 'orders' | 'products'
@@ -72,13 +73,7 @@ export class ChartItemDto {
     value: number
 }
 
-export class TopSoldItemDto {
-    @ApiProperty({ example: 101 })
-    productId: number
-
-    @ApiProperty({ example: 'Product Name' })
-    productName: string
-
+export class TopSoldItemDto extends ProductDto {
     @ApiProperty({ example: 25 })
     amountSold: number
 }

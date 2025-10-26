@@ -2,6 +2,7 @@ import { Controller, Get } from '@nestjs/common'
 import { ApiOkResponse, ApiTags } from '@nestjs/swagger'
 import { CategoriesService } from './categories.service'
 import { Public } from '../auth/auth.guard'
+import { CategoryDto } from './category.dto'
 
 @Controller('categories')
 @ApiTags('categories')
@@ -10,7 +11,7 @@ export class CategoriesController {
 
     @Public()
     @Get()
-    @ApiOkResponse({ description: 'Get all categories', type: [String] })
+    @ApiOkResponse({ description: 'Get all categories', type: [CategoryDto] })
     async get() {
         return this.categoriesService.get()
     }

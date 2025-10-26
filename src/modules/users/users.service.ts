@@ -1,6 +1,7 @@
 import * as bcrypt from 'bcrypt'
 import {
     Injectable,
+    Logger,
     NotFoundException,
     UnauthorizedException,
     UnprocessableEntityException,
@@ -9,11 +10,12 @@ import { User } from './user.entity'
 import { Repository } from 'typeorm'
 import { InjectRepository } from '@nestjs/typeorm'
 import { CreateUserDto, UpdateUserDto, UserDto } from './user.dto'
-import { NewTokenDto, SignInDto } from '../auth/auth.dto'
+import { SignInDto } from '../auth/auth.dto'
 import { AUTH_ERRORS } from 'src/error/auth.error'
 
 @Injectable()
 export class UsersService {
+    private readonly logger = new Logger(UsersService.name)
     constructor(
         @InjectRepository(User)
         private usersRepository: Repository<User>

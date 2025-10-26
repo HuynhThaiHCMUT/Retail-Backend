@@ -15,7 +15,6 @@ import { Public } from '../auth/auth.guard'
 export class ReportsController {
     constructor(private readonly reportsService: ReportsService) {}
 
-    @Public()
     @Get('summary')
     @ApiOkResponse({ type: SummaryResponseDto })
     async summary(
@@ -31,7 +30,6 @@ export class ReportsController {
         return this.reportsService.getTopSold(query.range, query.date)
     }
 
-    @Public()
     @Get('chart')
     @ApiOkResponse({ type: ChartItemDto, isArray: true })
     async chart(@Query() query: ChartQueryDto): Promise<ChartItemDto[]> {
