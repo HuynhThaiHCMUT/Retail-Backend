@@ -14,11 +14,11 @@ export class UnitDto {
     @ApiPropertyOptional()
     @ValidateIf((obj) => obj.fractionalWeight === undefined)
     @IsNumber()
-    weight: number
+    weight?: number
     @ApiPropertyOptional()
     @ValidateIf((obj) => obj.weight === undefined)
     @IsNumber()
-    fractionalWeight: number
+    fractionalWeight?: number
     @ApiProperty()
     @IsNumber()
     price: number

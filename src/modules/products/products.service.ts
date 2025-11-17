@@ -7,8 +7,8 @@ import {
     FindOptionsWhere,
     In,
     LessThanOrEqual,
-    Like,
     MoreThanOrEqual,
+    Like,
     Repository,
 } from 'typeorm'
 import { CreateProductDto, ProductDto, UpdateProductDto } from './product.dto'
@@ -17,6 +17,7 @@ import { CategoriesService } from '../categories/categories.service'
 import { UnitsService } from '../units/units.service'
 import { PRODUCT_ERRORS } from 'src/error/product.error'
 import { FILE_ERRORS } from 'src/error/file.error'
+import { PartialList } from 'src/utils/data'
 
 @Injectable()
 export class ProductsService {
@@ -88,7 +89,7 @@ export class ProductsService {
         priceFrom?: number,
         priceTo?: number,
         categories?: string
-    ): Promise<ProductDto[]> {
+    ): Promise<PartialList<ProductDto>> {
         const order: { [key: string]: 'ASC' | 'DESC' } = {}
         switch (sortBy) {
             case 'price-asc':
@@ -119,17 +120,24 @@ export class ProductsService {
             const categoriesArray = categories.split(',')
             where.categories = { name: In(categoriesArray) }
         }
-        const products = await this.productsRepository.find({
-            skip: offset,
-            take: limit,
-            order,
-            where,
-            relations: ['categories', 'units'],
-        })
+        const [products, totalCount] =
+            await this.productsRepository.findAndCount({
+                skip: offset,
+                take: limit,
+                order,
+                where,
+                relations: ['categories', 'units'],
+            })
+
         const pictures = await Promise.all(
             products.map((p) => this.getPicturesById(p.id))
         )
-        return products.map((product, index) => product.toDto(pictures[index]))
+
+        const items = products.map((product, index) =>
+            product.toDto(pictures[index])
+        )
+
+        return { items, totalCount }
     }
 
     async getPicturesById(id: string): Promise<string[]> {

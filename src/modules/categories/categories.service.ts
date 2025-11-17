@@ -103,6 +103,7 @@ export class CategoriesService {
                 const productCount = productCounts.get(c.id) ?? 0
 
                 return {
+                    id: c.id,
                     name: c.name,
                     picture,
                     productCount,

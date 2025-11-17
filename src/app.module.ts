@@ -31,7 +31,7 @@ import { ReportsModule } from './modules/reports/reports.module'
                 synchronize: true,
                 autoLoadEntities: true,
                 charset: 'utf8mb4',
-                collation: 'utf8mb4_unicode_ci',
+                collation: 'utf8mb4_0900_ai_ci',
                 timezone: 'Z',
             }),
             inject: [ConfigService],

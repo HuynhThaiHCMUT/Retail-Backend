@@ -6,6 +6,7 @@ import {
     UnprocessableEntityException,
 } from '@nestjs/common'
 import {
+    DataSource,
     EntityManager,
     FindOptionsWhere,
     In,
@@ -35,10 +36,10 @@ import { Unit } from '../units/unit.entity'
 @Injectable()
 export class OrdersService {
     private readonly logger = new Logger(OrdersService.name)
-    private dataSource = this.ordersRepository.manager.connection
     constructor(
         @InjectRepository(Order)
-        private readonly ordersRepository: Repository<Order>
+        private readonly ordersRepository: Repository<Order>,
+        private dataSource: DataSource
     ) {}
 
     async findOne(id: string): Promise<Order> {

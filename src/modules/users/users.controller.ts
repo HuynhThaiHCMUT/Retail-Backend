@@ -1,4 +1,5 @@
 import { diskStorage } from 'multer'
+import { v4 as uuidv4 } from 'uuid'
 import {
     Body,
     Controller,
@@ -11,9 +12,10 @@ import {
     Put,
     Query,
     UploadedFile,
+    UploadedFiles,
     UseInterceptors,
 } from '@nestjs/common'
-import { FileInterceptor } from '@nestjs/platform-express'
+import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express'
 import {
     ApiBadRequestResponse,
     ApiBearerAuth,
@@ -85,6 +87,30 @@ export class UsersController {
     @ApiBadRequestResponse({ description: 'Bad request' })
     updateUser(@Param('id') id: string, @Body() body: UpdateUserDto) {
         return this.usersService.update(id, body)
+    }
+
+    @ApiUnauthorizedResponse({ description: 'Unauthorized' })
+    @UseInterceptors(
+        FilesInterceptor('files', 1, {
+            storage: diskStorage({
+                destination: './pictures',
+                filename: (req, file, callback) => {
+                    const pictureId = uuidv4()
+                    const id = req.params.id
+                    const filename = `${id}-${pictureId}${file.originalname.substring(file.originalname.lastIndexOf('.'))}`
+                    callback(null, filename)
+                },
+            }),
+        })
+    )
+    async uploadPicture(
+        @Param('id') id: string,
+        @UploadedFiles() files: Array<Express.Multer.File>
+    ) {
+        if (!files || files.length === 0) {
+            throw new NotFoundException(FILE_ERRORS.FILE_NOT_FOUND_ERROR)
+        }
+        return this.usersService.uploadAvatar(id, files[0].filename)
     }
 
     @AdminOrSelf()

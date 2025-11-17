@@ -34,6 +34,7 @@ import {
 import { ProductsService } from './products.service'
 import { Public } from '../auth/auth.guard'
 import { FILE_ERRORS } from 'src/error/file.error'
+import { PartialList } from 'src/utils/data'
 
 @ApiTags('products')
 @ApiBearerAuth()
@@ -46,7 +47,7 @@ export class ProductsController {
     @Get()
     @ApiOkResponse({
         description: 'Get products successfully',
-        type: [ProductDto],
+        type: PartialList<ProductDto>,
     })
     @ApiUnauthorizedResponse({ description: 'Unauthorized' })
     getProducts(
