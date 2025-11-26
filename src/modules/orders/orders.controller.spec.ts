@@ -27,9 +27,16 @@ describe('OrdersController', () => {
     })
 
     it('getOrders', async () => {
-        service.get.mockResolvedValue([])
-        await controller.getOrders(0, 10)
-        expect(service.get).toHaveBeenCalledWith(0, 10)
+        service.get.mockResolvedValue({ orders: [], totalCount: 0 })
+        await controller.getOrders({ offset: 0, limit: 10 })
+        expect(service.get).toHaveBeenCalledWith(
+            0,
+            10,
+            undefined,
+            undefined,
+            undefined,
+            undefined
+        )
     })
 
     it('createOrder', async () => {

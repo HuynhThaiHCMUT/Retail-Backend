@@ -1,31 +1,32 @@
 import {
     Body,
     Controller,
-    DefaultValuePipe,
     Delete,
     Get,
     Param,
-    ParseIntPipe,
     Post,
     Put,
     Query,
     Req,
+    ValidationPipe,
 } from '@nestjs/common'
 import { Admin, Staff } from '../auth/auth.guard'
 import {
     CreateOnlineOrderDto,
     CreatePOSOrderDto,
+    GetOrdersQueryDto,
     OrderDto,
     UpdateOrderDto,
 } from './order.dto'
 import { OrdersService } from './orders.service'
 import {
     ApiBearerAuth,
+    ApiExtraModels,
     ApiNotFoundResponse,
     ApiOkResponse,
-    ApiQuery,
     ApiTags,
 } from '@nestjs/swagger'
+import { PartialList } from 'src/utils/data'
 
 @ApiTags('orders')
 @ApiBearerAuth()
@@ -46,17 +47,23 @@ export class OrdersController {
 
     @Staff()
     @Get()
-    @ApiQuery({ name: 'offset', required: false, type: Number })
-    @ApiQuery({ name: 'limit', required: false, type: Number })
+    @ApiExtraModels(GetOrdersQueryDto)
     @ApiOkResponse({
-        type: [OrderDto],
+        type: PartialList<OrderDto>,
         description: 'Retrieved orders successfully',
     })
     async getOrders(
-        @Query('offset', new DefaultValuePipe(0), ParseIntPipe) offset?: number,
-        @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit?: number
+        @Query(new ValidationPipe({ transform: true }))
+        query: GetOrdersQueryDto
     ) {
-        return this.ordersService.get(offset, limit)
+        return this.ordersService.get(
+            query.offset,
+            query.limit,
+            query.sortBy,
+            query.totalFrom,
+            query.totalTo,
+            query.status
+        )
     }
 
     @Staff()
@@ -97,6 +104,18 @@ export class OrdersController {
         @Req() req: Request
     ) {
         return this.ordersService.updateOrder(id, data, req['user'].id)
+    }
+
+    @Put(':id/close')
+    @ApiOkResponse({
+        type: OrderDto,
+        description: 'Close order successfully',
+    })
+    @ApiNotFoundResponse({
+        description: 'Order, order product or product not found',
+    })
+    async closeOrder(@Param('id') id: string, @Req() req: Request) {
+        return this.ordersService.closeOrder(id, req['user'].id)
     }
 
     @Admin()

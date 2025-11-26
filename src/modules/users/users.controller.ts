@@ -7,10 +7,8 @@ import {
     Get,
     NotFoundException,
     Param,
-    ParseIntPipe,
     Post,
     Put,
-    Query,
     UploadedFile,
     UploadedFiles,
     UseInterceptors,
@@ -51,12 +49,8 @@ export class UsersController {
         type: [UserDto],
     })
     @ApiUnauthorizedResponse({ description: 'Unauthorized' })
-    async getUsers(
-        @Query('offset', new ParseIntPipe({ optional: true }))
-        offset: number = 0,
-        @Query('limit', new ParseIntPipe({ optional: true })) limit: number = 10
-    ) {
-        return await this.usersService.get(offset, limit)
+    async getUsers() {
+        return await this.usersService.get()
     }
 
     @AdminOrSelf()

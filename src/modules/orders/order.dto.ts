@@ -3,7 +3,9 @@ import {
     ArrayMinSize,
     IsArray,
     IsEnum,
+    IsInt,
     IsOptional,
+    Min,
     ValidateNested,
 } from 'class-validator'
 import {
@@ -83,4 +85,42 @@ export class UpdateOrderDto {
     @ApiPropertyOptional({ type: () => [UpdateOrderProductDto] })
     @IsOptional()
     products?: (CreateOrderProductDto | UpdateOrderProductDto)[]
+}
+
+export class GetOrdersQueryDto {
+    @ApiPropertyOptional({ type: Number, default: 0 })
+    @IsOptional()
+    @Type(() => Number)
+    @IsInt()
+    @Min(0)
+    offset?: number = 0
+
+    @ApiPropertyOptional({ type: Number, default: 10 })
+    @IsOptional()
+    @Type(() => Number)
+    @IsInt()
+    @Min(1)
+    limit?: number = 10
+
+    @ApiPropertyOptional({ enum: ['time', 'price-desc', 'price-asc'] })
+    @IsOptional()
+    @IsEnum(['time', 'price-desc', 'price-asc'])
+    sortBy?: 'time' | 'price-desc' | 'price-asc'
+
+    @ApiPropertyOptional({ type: Number })
+    @IsOptional()
+    @Type(() => Number)
+    @IsInt()
+    totalFrom?: number
+
+    @ApiPropertyOptional({ type: Number })
+    @IsOptional()
+    @Type(() => Number)
+    @IsInt()
+    totalTo?: number
+
+    @ApiPropertyOptional({ enum: OrderStatus })
+    @IsOptional()
+    @IsEnum(OrderStatus)
+    status?: OrderStatus
 }

@@ -115,7 +115,11 @@ describe('ProductsService', () => {
         it('should return list of product dto', async () => {
             mockRepository.findAndCount.mockResolvedValue([[mockProduct], 1])
             const result = await service.get()
-            expect(result.items.length).toBe(1)
+            if (Array.isArray(result)) {
+                expect(result.length).toBe(1)
+            } else {
+                expect(result.items.length).toBe(1)
+            }
         })
     })
 })

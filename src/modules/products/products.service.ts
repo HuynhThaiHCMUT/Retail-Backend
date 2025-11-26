@@ -89,7 +89,7 @@ export class ProductsService {
         priceFrom?: number,
         priceTo?: number,
         categories?: string
-    ): Promise<PartialList<ProductDto>> {
+    ): Promise<PartialList<ProductDto> | ProductDto[]> {
         const order: { [key: string]: 'ASC' | 'DESC' } = {}
         switch (sortBy) {
             case 'price-asc':
@@ -123,7 +123,7 @@ export class ProductsService {
         const [products, totalCount] =
             await this.productsRepository.findAndCount({
                 skip: offset,
-                take: limit,
+                take: limit > 0 ? limit : undefined,
                 order,
                 where,
                 relations: ['categories', 'units'],
@@ -137,7 +137,11 @@ export class ProductsService {
             product.toDto(pictures[index])
         )
 
-        return { items, totalCount }
+        if (limit > 0) {
+            return { items, totalCount }
+        } else {
+            return items
+        }
     }
 
     async getPicturesById(id: string): Promise<string[]> {

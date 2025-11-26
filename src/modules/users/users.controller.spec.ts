@@ -27,7 +27,7 @@ describe('UsersController', () => {
 
     it('should return users list', async () => {
         mockUsersService.get.mockResolvedValue([{ id: '1' }])
-        const result = await controller.getUsers(0, 10)
+        const result = await controller.getUsers()
         expect(result).toEqual([{ id: '1' }])
     })
 

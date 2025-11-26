@@ -148,7 +148,7 @@ export class GetProductsQueryDto {
     @IsOptional()
     @Type(() => Number)
     @IsInt()
-    @Min(1)
+    @Min(0)
     limit?: number = 10
 
     @ApiPropertyOptional({ enum: ['time', 'price-desc', 'price-asc'] })

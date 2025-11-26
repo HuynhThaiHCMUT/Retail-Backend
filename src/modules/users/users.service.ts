@@ -31,11 +31,8 @@ export class UsersService {
         return (await this.findOne(id)).toDto()
     }
 
-    async get(offset: number, limit: number): Promise<UserDto[]> {
-        const users = await this.usersRepository.find({
-            skip: offset,
-            take: limit,
-        })
+    async get(): Promise<UserDto[]> {
+        const users = await this.usersRepository.find()
         return users.map((user) => user.toDto())
     }
 

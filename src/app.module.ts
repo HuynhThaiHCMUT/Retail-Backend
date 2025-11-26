@@ -33,6 +33,7 @@ import { ReportsModule } from './modules/reports/reports.module'
                 charset: 'utf8mb4',
                 collation: 'utf8mb4_0900_ai_ci',
                 timezone: 'Z',
+                logging: true,
             }),
             inject: [ConfigService],
         }),

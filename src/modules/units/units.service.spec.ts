@@ -37,7 +37,7 @@ describe('UnitsService', () => {
         it('should return empty array if data is null', async () => {
             const res = await service.createFromArray(null)
             expect(res).toEqual([])
-            expect(mockRepository.save).not.toBeCalled()
+            expect(mockRepository.save).not.toHaveBeenCalled()
         })
 
         it('should save units directly if no productId', async () => {
@@ -45,7 +45,7 @@ describe('UnitsService', () => {
 
             const res = await service.createFromArray(mockUnits, null)
 
-            expect(mockRepository.save).toBeCalledWith(mockUnits)
+            expect(mockRepository.save).toHaveBeenCalledWith(mockUnits)
             expect(res).toEqual(mockUnits)
         })
 
@@ -55,11 +55,11 @@ describe('UnitsService', () => {
             ])
 
             mockRepository.create.mockImplementation((e) => e)
-            mockRepository.save.mockResolvedValue(mockUnits)
+            mockRepository.save.mockImplementation((e) => e)
 
             const res = await service.createFromArray(mockUnits, 'product123')
 
-            expect(mockRepository.find).toBeCalledWith({
+            expect(mockRepository.find).toHaveBeenCalledWith({
                 where: { product: { id: 'product123' } },
             })
             expect(mockRepository.save).toHaveBeenCalledTimes(2)

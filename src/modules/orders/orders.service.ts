@@ -6,11 +6,14 @@ import {
     UnprocessableEntityException,
 } from '@nestjs/common'
 import {
+    And,
     DataSource,
     EntityManager,
     FindOptionsWhere,
     In,
     IsNull,
+    LessThanOrEqual,
+    MoreThanOrEqual,
     Not,
     Repository,
 } from 'typeorm'
@@ -32,6 +35,7 @@ import {
 import { OrderStatus, Role } from 'src/utils/enum'
 import { ORDER_ERRORS } from 'src/error/order.error'
 import { Unit } from '../units/unit.entity'
+import { PartialList } from 'src/utils/data'
 
 @Injectable()
 export class OrdersService {
@@ -337,16 +341,50 @@ export class OrdersService {
         return
     }
 
-    async get(offset: number = 0, limit: number = 10): Promise<OrderDto[]> {
-        const findOptions: FindOptionsWhere<Order> = {}
-        return (
-            await this.ordersRepository.find({
-                where: findOptions,
-                relations: ['products', 'products.product'],
-                order: { createdAt: 'DESC' },
-                skip: offset,
-                take: limit,
-            })
-        ).map((order) => order.toDto())
+    async get(
+        offset: number = 0,
+        limit: number = 10,
+        sortBy?: 'time' | 'price-desc' | 'price-asc',
+        totalFrom?: number,
+        totalTo?: number,
+        status?: OrderStatus
+    ): Promise<PartialList<OrderDto>> {
+        const where: FindOptionsWhere<Order> = {}
+        if (status) {
+            where.status = status
+        }
+        if (totalFrom && totalTo) {
+            where.total = And(
+                MoreThanOrEqual(totalFrom),
+                LessThanOrEqual(totalTo)
+            )
+        } else if (totalFrom) {
+            where.total = MoreThanOrEqual(totalFrom)
+        } else if (totalTo) {
+            where.total = LessThanOrEqual(totalTo)
+        }
+        const order: { [key: string]: 'ASC' | 'DESC' } = {}
+        switch (sortBy) {
+            case 'price-asc':
+                order.total = 'ASC'
+                break
+            case 'price-desc':
+                order.total = 'DESC'
+                break
+            default:
+                order.createdAt = 'DESC'
+                break
+        }
+        const [orders, totalCount] = await this.ordersRepository.findAndCount({
+            relations: ['products', 'products.product'],
+            where,
+            order,
+            skip: offset,
+            take: limit,
+        })
+        return {
+            items: orders.map((order) => order.toDto()),
+            totalCount,
+        }
     }
 }

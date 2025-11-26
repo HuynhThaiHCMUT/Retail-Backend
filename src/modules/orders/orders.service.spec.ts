@@ -16,6 +16,7 @@ const mockRepository = () => ({
     softDelete: jest.fn(),
     findOneBy: jest.fn(),
     findBy: jest.fn(),
+    findAndCount: jest.fn(),
 })
 
 const mockManager = (repos: Record<string, any>) => ({
@@ -267,12 +268,15 @@ describe('OrdersService', () => {
         const o2 = new FakeOrder()
         o2.id = 'o2'
         o2.total = 10
-        ordersRepo.find.mockResolvedValue([o1, o2])
+        ordersRepo.findAndCount.mockResolvedValue([[o1, o2], 2])
 
         const res = await service.get(0, 2)
-        expect(res).toEqual([
-            { id: 'o1', name: o1.name, total: 5, status: o1.status },
-            { id: 'o2', name: o2.name, total: 10, status: o2.status },
-        ])
+        expect(res).toEqual({
+            items: [
+                { id: 'o1', name: o1.name, total: 5, status: o1.status },
+                { id: 'o2', name: o2.name, total: 10, status: o2.status },
+            ],
+            totalCount: 2,
+        })
     })
 })
