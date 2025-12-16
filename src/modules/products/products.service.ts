@@ -59,21 +59,27 @@ export class ProductsService {
         return createdProduct.toDto()
     }
 
-    async update(id: string, data: UpdateProductDto): Promise<ProductDto> {
+    async update(
+        id: string,
+        data: UpdateProductDto,
+        userId: string
+    ): Promise<ProductDto> {
         let product = await this.findOne(id)
         Object.assign(product, data)
         product.categories = await this.categoriesService.createFromArray(
             data.categories
         )
         product.units = await this.unitsService.createFromArray(data.units, id)
+        product.updatedBy = userId
         product = await this.productsRepository.save(product)
         await this.categoriesService.deleteUnused()
         return product.toDto()
     }
 
-    async delete(id: string): Promise<void> {
+    async delete(id: string, userId: string): Promise<void> {
         const product = await this.findOne(id)
         product.categories = []
+        product.updatedBy = userId
         await this.unitsService.deleteByProductId(id)
         await this.productsRepository.save(product)
         await this.productsRepository.softDelete(id)
@@ -104,7 +110,11 @@ export class ProductsService {
         }
         const where: FindOptionsWhere<Product> = {}
         if (name) {
-            where.name = Like(`%${name}%`)
+            if (name.match(/^\d{8,}$/)) {
+                where.barcode = Like(`%${name}%`)
+            } else {
+                where.name = Like(`%${name}%`)
+            }
         }
         if (priceFrom && priceTo) {
             where.price = And(

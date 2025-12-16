@@ -122,7 +122,7 @@ export class OrdersController {
     @Delete(':id')
     @ApiOkResponse({ description: 'Deleted order successfully' })
     @ApiNotFoundResponse({ description: 'Order not found' })
-    async deleteOrder(@Param('id') id: string) {
-        return this.ordersService.deleteOrder(id)
+    async deleteOrder(@Param('id') id: string, @Req() req: Request) {
+        return this.ordersService.deleteOrder(id, req['user'].id)
     }
 }

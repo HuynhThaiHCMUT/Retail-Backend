@@ -12,7 +12,6 @@ import { JwtService, TokenExpiredError } from '@nestjs/jwt'
 import { Request } from 'express'
 import { AUTH_ERRORS } from 'src/error/auth.error'
 import { Role } from 'src/utils/enum'
-import { RequestContext } from 'src/utils/request-context'
 
 export const IS_PUBLIC_KEY = 'isPublic'
 export const IS_ADMIN_KEY = 'isAdmin'
@@ -28,8 +27,7 @@ export class AuthGuard implements CanActivate {
     constructor(
         private jwtService: JwtService,
         private configService: ConfigService,
-        private reflector: Reflector,
-        private readonly requestContext: RequestContext
+        private reflector: Reflector
     ) {}
 
     async canActivate(context: ExecutionContext): Promise<boolean> {
@@ -39,7 +37,6 @@ export class AuthGuard implements CanActivate {
         )
 
         if (isPublic) {
-            this.requestContext.run(() => {}, { userId: null })
             return true
         }
 
@@ -55,7 +52,6 @@ export class AuthGuard implements CanActivate {
                 secret: this.configService.get<string>('JWT_SECRET'),
             })
             request['user'] = payload
-            this.requestContext.run(() => {}, { userId: payload.id })
         } catch (error) {
             if (error instanceof TokenExpiredError)
                 throw new UnauthorizedException(AUTH_ERRORS.EXPIRED_TOKEN_ERROR)

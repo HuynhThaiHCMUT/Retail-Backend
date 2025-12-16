@@ -256,8 +256,11 @@ describe('OrdersService', () => {
     })
 
     it('deleteOrder - calls softDelete', async () => {
+        ordersRepo.findOne.mockResolvedValue({ id: 'order-1' })
         ordersRepo.softDelete.mockResolvedValue(undefined)
-        await expect(service.deleteOrder('order-1')).resolves.toBeUndefined()
+        await expect(
+            service.deleteOrder('order-1', 'u1')
+        ).resolves.toBeUndefined()
         expect(ordersRepo.softDelete).toHaveBeenCalledWith('order-1')
     })
 

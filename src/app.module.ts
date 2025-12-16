@@ -12,7 +12,6 @@ import { ServeStaticModule } from '@nestjs/serve-static'
 import { CategoriesModule } from './modules/categories/categories.module'
 import { OrdersModule } from './modules/orders/orders.module'
 import { AuditSubscriber } from './modules/audit-logs/audit.subscriber'
-import { RequestContext } from './utils/request-context'
 import { AuditLogsModule } from './modules/audit-logs/audit-logs.module'
 import { ReportsModule } from './modules/reports/reports.module'
 
@@ -33,7 +32,7 @@ import { ReportsModule } from './modules/reports/reports.module'
                 charset: 'utf8mb4',
                 collation: 'utf8mb4_0900_ai_ci',
                 timezone: 'Z',
-                logging: true,
+                logging: false,
             }),
             inject: [ConfigService],
         }),
@@ -52,6 +51,6 @@ import { ReportsModule } from './modules/reports/reports.module'
         ReportsModule,
     ],
     controllers: [AppController],
-    providers: [AppService, RequestContext, AuditSubscriber],
+    providers: [AppService, AuditSubscriber],
 })
 export class AppModule {}

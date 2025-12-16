@@ -37,6 +37,7 @@ export class ReportsService {
                 end,
             })
             .andWhere('order.deletedAt IS NULL')
+            .andWhere('order.status = :completed', { completed: 'DONE' })
             .getRawOne()
 
         const revenue = Number(revenueRow?.revenue ?? 0)
@@ -60,6 +61,7 @@ export class ReportsService {
                 end,
             })
             .andWhere('order.deletedAt IS NULL')
+            .andWhere('order.status = :completed', { completed: 'DONE' })
             .getRawOne()
 
         const profit = Number(row?.profit ?? 0)
@@ -92,6 +94,7 @@ export class ReportsService {
             .leftJoin('op.unit', 'unit')
             .where('order.createdAt BETWEEN :start AND :end', { start, end })
             .andWhere('order.deletedAt IS NULL')
+            .andWhere('order.status = :completed', { completed: 'DONE' })
             .groupBy('product.id')
             .addGroupBy('product.name')
             .orderBy('amountSold', 'DESC')
@@ -213,6 +216,7 @@ export class ReportsService {
                     end,
                 })
                 .andWhere('order.deletedAt IS NULL')
+                .andWhere('order.status = :completed', { completed: 'DONE' })
                 .groupBy('hour')
 
             if (metric === 'revenue') {
@@ -248,6 +252,7 @@ export class ReportsService {
                     end,
                 })
                 .andWhere('order.deletedAt IS NULL')
+                .andWhere('order.status = :completed', { completed: 'DONE' })
                 .groupBy('hour')
                 .getRawMany()
 
@@ -284,6 +289,7 @@ export class ReportsService {
                     end,
                 })
                 .andWhere('order.deletedAt IS NULL')
+                .andWhere('order.status = :completed', { completed: 'DONE' })
                 .groupBy('mysqlDay')
 
             if (metric === 'revenue') {
@@ -335,6 +341,7 @@ export class ReportsService {
                     end,
                 })
                 .andWhere('order.deletedAt IS NULL')
+                .andWhere('order.status = :completed', { completed: 'DONE' })
                 .groupBy('mysqlDay')
                 .getRawMany()
 
@@ -392,6 +399,7 @@ export class ReportsService {
                     end,
                 })
                 .andWhere('order.deletedAt IS NULL')
+                .andWhere('order.status = :completed', { completed: 'DONE' })
                 .groupBy('day')
 
             const rows = await qb.getRawMany()
@@ -422,6 +430,7 @@ export class ReportsService {
                     end,
                 })
                 .andWhere('order.deletedAt IS NULL')
+                .andWhere('order.status = :completed', { completed: 'DONE' })
                 .groupBy('day')
                 .getRawMany()
 

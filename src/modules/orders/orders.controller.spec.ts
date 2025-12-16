@@ -67,8 +67,11 @@ describe('OrdersController', () => {
     })
 
     it('deleteOrder', async () => {
+        const req: any = { user: { id: 'u1' } }
         service.deleteOrder.mockResolvedValue(undefined)
-        await expect(controller.deleteOrder('o123')).resolves.toBeUndefined()
-        expect(service.deleteOrder).toHaveBeenCalledWith('o123')
+        await expect(
+            controller.deleteOrder('o123', req)
+        ).resolves.toBeUndefined()
+        expect(service.deleteOrder).toHaveBeenCalledWith('o123', 'u1')
     })
 })

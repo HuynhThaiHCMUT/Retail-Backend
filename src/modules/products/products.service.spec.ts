@@ -97,7 +97,11 @@ describe('ProductsService', () => {
             mockRepository.findOne.mockResolvedValue(mockProduct)
             mockRepository.save.mockResolvedValue(mockProduct)
 
-            const result = await service.update('123', { name: 'Updated' })
+            const result = await service.update(
+                '123',
+                { name: 'Updated' },
+                'u1'
+            )
             expect(result).toEqual(mockProduct.toDto())
         })
     })
@@ -106,7 +110,7 @@ describe('ProductsService', () => {
         it('should soft delete product', async () => {
             mockRepository.findOne.mockResolvedValue(mockProduct)
 
-            await service.delete('123')
+            await service.delete('123', 'u1')
             expect(mockRepository.softDelete).toBeCalledWith('123')
         })
     })

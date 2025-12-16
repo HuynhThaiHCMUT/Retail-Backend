@@ -6,7 +6,6 @@ import { AuthController } from './auth.controller'
 import { AuthService } from './auth.service'
 import { AuthGuard } from './auth.guard'
 import { UsersModule } from '../users/users.module'
-import { RequestContext } from 'src/utils/request-context'
 
 @Module({
     imports: [
@@ -24,7 +23,6 @@ import { RequestContext } from 'src/utils/request-context'
     controllers: [AuthController],
     providers: [
         AuthService,
-        RequestContext,
         {
             provide: APP_GUARD,
             useClass: AuthGuard,

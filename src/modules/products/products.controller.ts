@@ -10,6 +10,7 @@ import {
     Post,
     Put,
     Query,
+    Req,
     UploadedFiles,
     UseInterceptors,
     ValidationPipe,
@@ -32,7 +33,7 @@ import {
     UpdateProductDto,
 } from './product.dto'
 import { ProductsService } from './products.service'
-import { Public } from '../auth/auth.guard'
+import { Public, Staff } from '../auth/auth.guard'
 import { FILE_ERRORS } from 'src/error/file.error'
 import { PartialList } from 'src/utils/data'
 
@@ -77,6 +78,7 @@ export class ProductsController {
         return await this.productsService.findOneDto(id)
     }
 
+    @Staff()
     @Post()
     @ApiOkResponse({
         description: 'Create new product successfully',
@@ -87,6 +89,7 @@ export class ProductsController {
         return this.productsService.create(productDto)
     }
 
+    @Staff()
     @Put(':id')
     @ApiOkResponse({
         description: 'Update product information successfully',
@@ -96,19 +99,22 @@ export class ProductsController {
     @ApiNotFoundResponse({ description: 'Product not found' })
     updateProduct(
         @Param('id') id: string,
-        @Body() productDto: UpdateProductDto
+        @Body() productDto: UpdateProductDto,
+        @Req() req: Request
     ) {
-        return this.productsService.update(id, productDto)
+        return this.productsService.update(id, productDto, req['user'].id)
     }
 
+    @Staff()
     @Delete(':id')
     @ApiOkResponse({ description: 'Delete product successfully' })
     @ApiUnauthorizedResponse({ description: 'Unauthorized' })
     @ApiNotFoundResponse({ description: 'Product not found' })
-    deleteProduct(@Param('id') id: string) {
-        return this.productsService.delete(id)
+    deleteProduct(@Param('id') id: string, @Req() req: Request) {
+        return this.productsService.delete(id, req['user'].id)
     }
 
+    @Staff()
     @Post(':id/pictures')
     @ApiBody({ description: 'Upload pictures', type: FilesUploadDto })
     @ApiOkResponse({
@@ -139,6 +145,7 @@ export class ProductsController {
         return this.productsService.getPicturesById(id)
     }
 
+    @Staff()
     @Delete(':id/pictures/:filename')
     @ApiOkResponse({ description: 'Delete picture successfully' })
     @ApiUnauthorizedResponse({ description: 'Unauthorized' })

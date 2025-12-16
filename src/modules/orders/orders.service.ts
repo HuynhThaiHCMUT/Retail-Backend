@@ -11,8 +11,8 @@ import {
     EntityManager,
     FindOptionsWhere,
     In,
-    IsNull,
     LessThanOrEqual,
+    Like,
     MoreThanOrEqual,
     Not,
     Repository,
@@ -75,20 +75,20 @@ export class OrdersService {
         const orderProductRepo = manager.getRepository(OrderProduct)
         const orderRepo = manager.getRepository(Order)
 
-        // Generate order name with format "YYMXXXXXXX" where x is incremental
-        const latestOrder = await orderRepo.findOne({
-            where: { name: Not('') },
-            order: { createdAt: 'DESC' },
-        })
+        // Generate order name with format "YYMMXXXXXXXX" where x is incremental
         let orderName =
             new Date().getFullYear().toString().slice(2) +
-            (new Date().getMonth() + 1)
+            (new Date().getMonth() + 1).toString().padStart(2, '0')
+        const latestOrder = await orderRepo.findOne({
+            where: { name: Like(`${orderName}%`), id: Not(order.id) },
+            order: { createdAt: 'DESC' },
+        })
         if (latestOrder) {
-            const latestOrderNumber = parseInt(latestOrder.name.slice(3), 10)
+            const latestOrderNumber = parseInt(latestOrder.name.slice(4), 10)
             const nextOrderNumber = latestOrderNumber + 1
-            orderName += nextOrderNumber.toString().padStart(7, '0')
+            orderName += nextOrderNumber.toString().padStart(8, '0')
         } else {
-            orderName += '0000001' // First order of the month
+            orderName += '00000001' // First order of the month
         }
         order.name = orderName
 
@@ -106,13 +106,27 @@ export class OrdersService {
                 })
             ).map((p) => [p.id, p])
         )
-        const unitMap = new Map(
-            (
-                await manager
-                    .getRepository(Unit)
-                    .findBy({ name: In(unitNames), product: Not(IsNull()) })
-            ).map((u) => [u.name, u])
-        )
+        const units = await manager.getRepository(Unit).find({
+            where: {
+                name: In(unitNames),
+                product: {
+                    id: In(productIds),
+                },
+            },
+            relations: ['product'],
+        })
+
+        const productUnitMap = units.reduce((map, unit) => {
+            const productId = unit.product?.id
+            if (!productId) return map
+
+            const existing = map.get(productId)
+            if (existing) existing.push(unit)
+            else map.set(productId, [unit])
+
+            return map
+        }, new Map<number | string, Unit[]>())
+
         const orderProductMap = new Map(
             (
                 await manager.getRepository(OrderProduct).find({
@@ -138,7 +152,10 @@ export class OrdersService {
                 orderProductDto.unitName &&
                 orderProductDto.unitName.trim() !== product.baseUnit
             ) {
-                unit = unitMap.get(orderProductDto.unitName)
+                unit = productUnitMap
+                    .get(orderProductDto.productId)
+                    ?.find((u) => u.name === orderProductDto.unitName)
+
                 if (!unit)
                     throw new NotFoundException(
                         ORDER_ERRORS.UNIT_NOT_FOUND_ERROR(
@@ -163,7 +180,9 @@ export class OrdersService {
                         )
                     )
 
-                orderProduct.unit = unitMap.get(orderProductDto.unitName)
+                orderProduct.unit = productUnitMap
+                    .get(orderProductDto.productId)
+                    ?.find((u) => u.name === orderProductDto.unitName)
                 orderProduct.quantity =
                     orderProductDto.quantity ?? orderProduct.quantity
                 orderProduct.price =
@@ -303,6 +322,7 @@ export class OrdersService {
             if (data.products) {
                 return this.processOrder(manager, order, data.products)
             }
+            order.updatedBy = userId
             return (await orderRepo.save(order)).toDto()
         })
     }
@@ -331,12 +351,15 @@ export class OrdersService {
 
             order.status = OrderStatus.DONE
             order.staff = user
+            order.updatedBy = userId
             return (await orderRepo.save(order)).toDto()
         })
     }
 
-    async deleteOrder(id: string): Promise<void> {
-        //const order = await this.findOne(id)
+    async deleteOrder(id: string, userId: string): Promise<void> {
+        const order = await this.findOne(id)
+        order.updatedBy = userId
+        await this.ordersRepository.save(order)
         await this.ordersRepository.softDelete(id)
         return
     }

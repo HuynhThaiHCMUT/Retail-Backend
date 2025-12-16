@@ -37,6 +37,8 @@ export class Order {
     @Column({ nullable: true })
     @Audit()
     customerName: string
+    @Column({ nullable: true })
+    updatedBy?: string
     @CreateDateColumn()
     createdAt: Date
     @UpdateDateColumn()

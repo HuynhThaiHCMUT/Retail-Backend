@@ -41,6 +41,8 @@ export class Product {
     barcode?: string
     @Column({ nullable: true })
     baseUnit?: string
+    @Column({ nullable: true })
+    updatedBy?: string
     @CreateDateColumn()
     createdAt: Date
     @UpdateDateColumn()

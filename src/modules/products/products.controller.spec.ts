@@ -72,16 +72,18 @@ describe('ProductsController', () => {
     describe('updateProduct', () => {
         it('should update product', async () => {
             const body = { name: 'Updated' }
+            const req: any = { user: { id: 'u1' } }
             mockProductsService.update.mockResolvedValue({ id: '123' })
-            const result = await controller.updateProduct('123', body)
+            const result = await controller.updateProduct('123', body, req)
             expect(result).toEqual({ id: '123' })
         })
     })
 
     describe('deleteProduct', () => {
         it('should delete product', async () => {
+            const req: any = { user: { id: 'u1' } }
             mockProductsService.delete.mockResolvedValue(undefined)
-            const result = await controller.deleteProduct('123')
+            const result = await controller.deleteProduct('123', req)
             expect(result).toBeUndefined()
         })
     })
