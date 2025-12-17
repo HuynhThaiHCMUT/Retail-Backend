@@ -8,8 +8,8 @@ import { ApiTags } from '@nestjs/swagger'
 export class AppController {
     constructor(private readonly appService: AppService) {}
 
-    // @Public()
-    // @Get('scheduler')
+    @Public()
+    @Get('scheduler')
     getScheduler() {
         return { success: true }
     }
