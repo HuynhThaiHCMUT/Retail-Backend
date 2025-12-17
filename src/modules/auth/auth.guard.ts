@@ -3,6 +3,7 @@ import {
     ExecutionContext,
     ForbiddenException,
     Injectable,
+    Logger,
     SetMetadata,
     UnauthorizedException,
 } from '@nestjs/common'
@@ -24,6 +25,7 @@ export const Staff = () => SetMetadata(IS_STAFF, true)
 
 @Injectable()
 export class AuthGuard implements CanActivate {
+    private readonly logger = new Logger(AuthGuard.name)
     constructor(
         private jwtService: JwtService,
         private configService: ConfigService,
@@ -85,7 +87,7 @@ export class AuthGuard implements CanActivate {
             }
 
             const isAdmin = user.role === Role.MANAGER
-            const isSelf = user.id === parseInt(userId, 10)
+            const isSelf = user.id === userId
 
             if (isAdmin || isSelf) {
                 return true

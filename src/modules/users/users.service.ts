@@ -12,6 +12,7 @@ import { InjectRepository } from '@nestjs/typeorm'
 import { CreateUserDto, UpdateUserDto, UserDto } from './user.dto'
 import { SignInDto } from '../auth/auth.dto'
 import { AUTH_ERRORS } from 'src/error/auth.error'
+import { Role } from 'src/utils/enum'
 
 @Injectable()
 export class UsersService {
@@ -66,7 +67,29 @@ export class UsersService {
 
     async update(id: string, data: UpdateUserDto): Promise<UserDto> {
         const user = await this.findOne(id)
-
+        // Prevent phone duplication
+        if (data.phone && data.phone !== user.phone) {
+            const existed = await this.usersRepository.findOneBy({
+                phone: data.phone,
+            })
+            if (existed) {
+                throw new UnprocessableEntityException(
+                    AUTH_ERRORS.DUPPLICATE_PHONE_ERROR
+                )
+            }
+        }
+        // Employee can't update role
+        if (
+            user.role === Role.EMPLOYEE &&
+            data.role &&
+            data.role !== user.role
+        ) {
+            throw new UnauthorizedException(AUTH_ERRORS.NOT_ADMIN_ERROR)
+        }
+        // Hash password if updated
+        if (data.password) {
+            data.password = await bcrypt.hash(data.password, 10)
+        }
         Object.assign(user, data)
         return (await this.usersRepository.save(user)).toDto()
     }
